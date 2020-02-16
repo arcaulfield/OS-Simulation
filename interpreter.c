@@ -4,6 +4,7 @@
 #include "shellmemory.h"
 #include "shell.h"
 #include "ram.h"
+#include "kernel.h"
 
 //prints a help menu
 int help(){
@@ -69,12 +70,45 @@ int run(char **words){
 
 //executes programs simultaneously
 int exec(char** words){
+    int i = 0;
+    int errorCode = 0;
     char* filename = words[1];
-    char* filename2 = words[2];
-    loadProgram(filename);
-    loadProgram(filename2);
-    printRam();
-    return 0;
+    errorCode = myinit(filename);
+
+    //parse words[2] to get 2 file names
+
+    int count  = 0;
+    while(words[2][i] != '\0'){
+        while(words[2][i] == ' '){
+            i ++;
+        }
+        if(words[2][i] == '\0'){
+            break;
+        }
+        count ++;
+        if(count > 2){
+            printf("WARNING: only 3 programs can be executed at once. Only the first three inputs will be executed.\n");
+            break;
+        }
+        memset(filename, '\0', word_length);
+        int j = 0;
+        while(words[2][i] != ' ' && words[2][i] != '\0'){
+            filename[j] = words[2][i];
+            i++;
+            j++;
+        }
+        filename[j] = '\0';
+        myinit(filename);
+    }
+
+
+    //char* filename2 = words[2];
+
+   // myinit(filename);
+    //printRam();
+   // myinit(filename2);
+    //printRam();
+    return errorCode;
 }
 
 int interpreter(char ** words){
