@@ -1,7 +1,5 @@
 #include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include "shellmemory.h"
 #include "shell.h"
 
 //****PRIVATE VARIABLES****

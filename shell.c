@@ -3,6 +3,7 @@
 #include <string.h>
 #include "interpreter.h"
 #include "shellmemory.h"
+#include "ram.h"
 
 int words_num;
 int word_length;
@@ -85,9 +86,11 @@ int main() {
     int errorCode = 0;
 
     initMemory();
+    initRam();
 
+    printf("Kernel 1.0 loaded!\n");
     printf("Welcome to the Alison shell!\n");
-    printf("Version 1.0 Created January 2020\n");
+    printf("Shell Version 2.0 Updated February 2020\n");
 
     while(1) {
         printf("%s", prompt);

@@ -3,4 +3,5 @@ project(Assignment2 C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(Assignment2 shell.c)
+include_directories(${PROJECT_SOURCE_DIR})
+add_executable(mykernel shell.c interpreter.c shellmemory.c ram.c)

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "shellmemory.h"
 #include "shell.h"
+#include "ram.h"
 
 //prints a help menu
 int help(){
@@ -42,6 +43,7 @@ int print(char ** words){
 int run(char **words){
 
     char *filename = words[1];
+
     int errorCode = 0;
     char line[1000];
 
@@ -65,6 +67,16 @@ int run(char **words){
 
 }
 
+//executes programs simultaneously
+int exec(char** words){
+    char* filename = words[1];
+    char* filename2 = words[2];
+    loadProgram(filename);
+    loadProgram(filename2);
+    printRam();
+    return 0;
+}
+
 int interpreter(char ** words){
     int errorCode = 0;
     char *argument = words[0];
@@ -74,6 +86,7 @@ int interpreter(char ** words){
     else if (strcmp(argument, "set") == 0) errorCode = set(words);
     else if (strcmp(argument, "print") == 0) errorCode = print(words);
     else if (strcmp(argument, "run") == 0) errorCode = run(words);
+    else if (strcmp(argument, "exec") == 0) errorCode = exec(words);
     else errorCode = 1;
 
     return errorCode;
