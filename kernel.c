@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "ram.h"
+#include "pcb.h"
 
 int myinit(char *filename){
     int start = 0;
@@ -25,8 +26,11 @@ int myinit(char *filename){
     if(errorCode !=  0){
         return errorCode;
     }
-    printRam(start, end);
-    clearProgram(start, end);
+    PCB* newPCB = makePCB(start, end);
+
+    printf("Created a PCB with start %d, end %d and program counter %d\n", newPCB->start, newPCB->end, newPCB->PC);
+
+  //  clearProgram(start, end);
     return 0;
 }
 
