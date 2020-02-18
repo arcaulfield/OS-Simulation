@@ -4,6 +4,33 @@
 #include "ram.h"
 #include "pcb.h"
 
+
+PCB *head, *tail;
+
+//adds a PCB to the back of the ready queue
+void addToReady(PCB* newPCB){
+    if(head == NULL){
+        head = newPCB;
+        tail = newPCB;
+    }
+    else{
+        tail->next = newPCB;
+        tail = newPCB;
+    }
+}
+
+//prints the contents of the ready queue
+//this is useful for debugging
+void printReadyQueue(){
+    printf("PRINTING CONTENTS OF QUEUE\n");
+    PCB* node = head;
+    while(node != NULL){
+        printf("Visited a PCB with start %d, end %d and program counter %d\n", node->start, node->end, node->PC);
+        printRam(node->start, node->end);
+        node = node->next;
+    }
+}
+
 int myinit(char *filename){
     int start = 0;
     int end = 0;
@@ -30,7 +57,12 @@ int myinit(char *filename){
 
     printf("Created a PCB with start %d, end %d and program counter %d\n", newPCB->start, newPCB->end, newPCB->PC);
 
-  //  clearProgram(start, end);
+    addToReady(newPCB);
+    printReadyQueue();
     return 0;
+}
+
+int finishExecuting(char* filename){
+    return 1;
 }
 
