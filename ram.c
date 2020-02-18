@@ -61,34 +61,17 @@ void printRam(int start, int end){
 }
 
 
-void finishExecuting(char* filename){
-    int k = 0;
-    for(int i = 0; i < 3; i ++){
-        if(strcmp(filename, programName[i]) == 0){
-            strcpy(programName[i], NULL);
-            free(programName[i]);
-            programName[i] = NULL;
-            k = i;
-        }
-    }
-    for(int i = startPtr[k]; i <= endPtr[k]; i ++){
+void clearProgram(int start, int end){
+    for(int i = start; i <= end; i ++){
         free(ram[i]);
         ram[i] = NULL;
-
-        //FIX START AND END POINTERS
     }
-    if(k == 0){
-        startPtr[k] = 0;
-        endPtr[k] = 0;
-    }else{
-        startPtr[k] = endPtr[k - 1] + 1;
-        endPtr[k] = endPtr[k - 1];
-    }
+    programCount --;
 }
 
 //clears all the memory from ram
 //called when program finishes running
-void clearRam(){
+void clearAllRam(){
     for(int i = 0; i < 1000; i ++){
         free(ram[i]);
     }

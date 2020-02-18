@@ -1,7 +1,7 @@
-#include "ram.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "ram.h"
 
 int myinit(char *filename){
     int start = 0;
@@ -13,6 +13,7 @@ int myinit(char *filename){
     strcat(newfile, "../");
     strcat(newfile, filename);
 
+    //WHEN NOT DEBUGGING, SET newfile to filename
     FILE *file = fopen(newfile, "rt");
 
     if(file == NULL){
@@ -25,7 +26,7 @@ int myinit(char *filename){
         return errorCode;
     }
     printRam(start, end);
-
+    clearProgram(start, end);
     return 0;
 }
 

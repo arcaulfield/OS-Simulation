@@ -4,8 +4,8 @@
 #include <stdio.h>
 
 void initRam();
-int loadProgram(char* filename);
-void printRam();
+void printRam(int start, int end);
 int addToRam(FILE *p, int* start, int* end);
+void clearProgram(int start, int end);
 
 #endif //ASSIGNMENT2_RAM_H

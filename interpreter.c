@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include "shellmemory.h"
 #include "shell.h"
-#include "ram.h"
 #include "kernel.h"
 
 //prints a help menu
@@ -12,6 +11,7 @@ int help(){
     printf("quit - exits/terminates the shell\nset VAR STRING - assigns a value to shell memory\n");
     printf("print VAR - displays the STRING assigned to VAR\n");
     printf("run SCRIPT.TXT - executes the file SCRIPT.TXT\n");
+    printf("exec PROG1 PROG2 PROG3 - executes up to three programs\n");
     return 0;
 }
 
@@ -76,7 +76,6 @@ int exec(char** words){
     errorCode = myinit(filename);
 
     //parse words[2] to get 2 file names
-
     int count  = 0;
     while(words[2][i] != '\0'){
         while(words[2][i] == ' '){
@@ -101,13 +100,6 @@ int exec(char** words){
         myinit(filename);
     }
 
-
-    //char* filename2 = words[2];
-
-   // myinit(filename);
-    //printRam();
-   // myinit(filename2);
-    //printRam();
     return errorCode;
 }
 
