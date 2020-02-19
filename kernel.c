@@ -4,6 +4,7 @@
 #include "ram.h"
 #include "pcb.h"
 #include "cpu.h"
+#include "interpreter.h"
 
 
 PCB *head, *tail;
@@ -122,16 +123,19 @@ int scheduler(){
             printf("***EXECUTING***\n\n");
             errorCode = runQ(quanta);
             printf("\n******\n");
-            if(errorCode != 0){
-                return errorCode;
-            }
-            pcb->PC = pcb->PC + quanta;
-            if(pcb->PC > pcb->end){
+            if(errorCode != 0 || exitProgramFlag == 1){
+                exitProgramFlag = 0;
                 finishExecuting(pcb);
             }
             else{
-                removeFromReady(pcb);
-                addToReady(pcb);
+                pcb->PC = pcb->PC + quanta;
+                if(pcb->PC > pcb->end){
+                    finishExecuting(pcb);
+                }
+                else{
+                    removeFromReady(pcb);
+                    addToReady(pcb);
+                }
             }
             printf("AFTER ONE QUANTA, THE READY LIST LOOKS LIKE THIS:\n");
             printReadyQueue();

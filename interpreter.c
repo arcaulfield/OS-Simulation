@@ -5,8 +5,12 @@
 #include "shell.h"
 #include "kernel.h"
 
+int exitProgramFlag = 0;
+
 int inFileCount = 0;
 int inProgramCount = 0;
+int closeFlag = 0;
+
 //prints a help menu
 int help(){
     printf("POSSIBLE COMMANDS FOR THE ALISON SHELL:\nhelp - displays all the commands\n");
@@ -26,6 +30,8 @@ int quit(){
         exit(0);
     }
     else{
+        exitProgramFlag = 1;
+        closeFlag = 1;
         return 0;
     }
 }
@@ -71,7 +77,9 @@ int run(char **words){
     fgets(line, 999, p);
     while(!feof(p)){
         errorCode = parse(line);
-        if(errorCode != 0){
+        if(errorCode != 0 || closeFlag == 1){
+            closeFlag = 0;
+            inFileCount--;
             fclose(p);
             return errorCode;
         }

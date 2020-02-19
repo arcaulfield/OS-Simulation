@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "ram.h"
 #include "shell.h"
+#include "interpreter.h"
 
 
 typedef struct CPU{
@@ -42,11 +43,13 @@ int runQ(int quanta){
         myCPU->IP ++;
         errorCode = parse(line);
         free(line);
-        if(errorCode != 0){
+        if(errorCode != 0 || exitProgramFlag == 1){
+            myCPU->quanta = 2;
+            myCPU->IR[0] = '\0';
             return errorCode;
         }
         myCPU->quanta ++;
-        memset(myCPU->IR, '\0', 999);
+        myCPU->IR[0] = '\0';
     }
     return errorCode;
 }
