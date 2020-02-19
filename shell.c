@@ -4,6 +4,7 @@
 #include "interpreter.h"
 #include "shellmemory.h"
 #include "ram.h"
+#include "cpu.h"
 
 int words_num;
 int word_length;
@@ -87,6 +88,7 @@ int main() {
 
     initMemory();
     initRam();
+    initCPU();
 
     printf("Kernel 1.0 loaded!\n");
     printf("Welcome to the Alison shell!\n");

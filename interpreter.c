@@ -5,6 +5,8 @@
 #include "shell.h"
 #include "kernel.h"
 
+int inFileCount = 0;
+int inProgramCount = 0;
 //prints a help menu
 int help(){
     printf("POSSIBLE COMMANDS FOR THE ALISON SHELL:\nhelp - displays all the commands\n");
@@ -19,9 +21,13 @@ int help(){
 //Note that, by assumption, this will still terminate the program if called by a script.
 int quit(){
     printf("Bye!\n");
-    clearMemory();
-    exit(0);
-    return 0;
+    if(inFileCount  == 0 && inProgramCount == 0){
+        clearMemory();
+        exit(0);
+    }
+    else{
+        return 0;
+    }
 }
 
 //sets the value stored in variables in memory
@@ -43,12 +49,20 @@ int print(char ** words){
 //runs scripts
 int run(char **words){
 
+    inFileCount ++;
     char *filename = words[1];
+
+    //FOR DEBUGGING PURPOSES
+    char newfile[100];
+    memset(newfile, '\0', 100);
+    strcat(newfile, "../");
+    strcat(newfile, filename);
 
     int errorCode = 0;
     char line[1000];
 
-    FILE *p = fopen(filename, "rt");
+    //WHEN NOT DEBUGGING, SET newfile to filename
+    FILE *p = fopen(newfile, "rt");
     if(p == NULL){
         errorCode = 2;
         return errorCode;
@@ -64,12 +78,15 @@ int run(char **words){
         fgets(line, 999, p);
     }
     fclose(p);
+    inFileCount--;
     return errorCode;
 
 }
 
 //executes programs simultaneously
 int exec(char** words){
+    inProgramCount ++;
+
     int i = 0;
     int errorCode = 0;
     char* filename = words[1];
@@ -99,7 +116,9 @@ int exec(char** words){
         filename[j] = '\0';
         myinit(filename);
     }
+    scheduler();
 
+    inProgramCount--;
     return errorCode;
 }
 

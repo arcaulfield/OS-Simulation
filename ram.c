@@ -3,18 +3,12 @@
 #include <string.h>
 
 char *ram[1000];
-char *programName[3];
-int startPtr[3] = {0, 0, 0};
-int endPtr[3] = {0, 0, 0};
 int programCount = 0;
 
 //initializes RAM
 void initRam(){
     for(int i = 0; i < 1000; i++){
         ram[i] = NULL;
-    }
-    for (int i = 0; i < 3; i++){
-        programName[i] = NULL;
     }
 }
 
@@ -62,8 +56,8 @@ void printRam(int start, int end){
 
 
 void clearProgram(int start, int end){
-    for(int i = start; i <= end; i ++){
-        free(ram[i]);
+    for(int i = start; i <= end; i++){
+       // free(ram[i]);
         ram[i] = NULL;
     }
     programCount --;
@@ -75,5 +69,10 @@ void clearAllRam(){
     for(int i = 0; i < 1000; i ++){
         free(ram[i]);
     }
+}
+
+//returns a line from RAM
+char * getLineFromRam(int line){
+    return strdup(ram[line]);
 }
 
