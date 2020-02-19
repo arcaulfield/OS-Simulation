@@ -13,6 +13,7 @@ int word_length;
 int parse(char* userInput){
     int errorCode = 0;
 
+    //ERROR OCCURS AFTER THIS LINE
     char **parsedString = (char **) malloc(sizeof(char *) * words_num);
     for (size_t i = 0; i < words_num; i++) {
         parsedString[i] = (char *) malloc(sizeof(char) * word_length);

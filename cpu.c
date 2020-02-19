@@ -41,6 +41,7 @@ int runQ(int quanta){
         char* line = getLineFromRam(myCPU->IP);
         myCPU->IP ++;
         errorCode = parse(line);
+        free(line);
         if(errorCode != 0){
             return errorCode;
         }
