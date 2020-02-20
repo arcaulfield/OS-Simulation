@@ -4,5 +4,6 @@ extern int words_num;
 extern int word_length;
 
 int parse(char* userInput);
+int shellUI();
 
 #endif

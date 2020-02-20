@@ -3,7 +3,14 @@
 #include <string.h>
 
 char *ram[1000];
-int programCount = 0;
+
+//this is a flag that indicates that there isn't enough space to load the program into RAM
+//this is used because addToRam must return void
+int loadErrorFlag = 0;
+
+int checkErrorFlag(){
+    return loadErrorFlag;
+}
 
 //initializes RAM
 void initRam(){
@@ -12,13 +19,7 @@ void initRam(){
     }
 }
 
-int addToRam(FILE *p, int* start, int* end){
-    if(programCount >= 3){
-        return 3; //too many programs in ram error code
-    }
-    programCount ++;
-    char buffer[1000];
-    fgets(buffer, 999, p);
+void addToRam(FILE *p, int* start, int* end){
     int k = 0;
     for(int i =0; i < 1000; i++){
         if (ram[i] == NULL){
@@ -28,22 +29,24 @@ int addToRam(FILE *p, int* start, int* end){
         }
     }
 
+    char buffer[1000];
+    fgets(buffer, 999, p);
+
     while(!feof(p)){
         ram[k] = (char *) malloc(1000 * sizeof(char));
         ram[k] = strdup(buffer);
         k++;
         if(k > 999 || ram[k] != NULL){
-            printf("WARNING: there was not enough space to load the entire program into RAM. Only part of the program was loaded.");
             *end = k - 1;
             fclose(p);
-            return 0;
+            loadErrorFlag = 1;
+            return;
         }
         fgets(buffer, 999, p);
     }
 
     *end = k - 1;
     fclose(p);
-    return 0;
 }
 //print function added for debugging purposes
 void printRam(int start, int end){
@@ -57,10 +60,15 @@ void printRam(int start, int end){
 
 void clearProgram(int start, int end){
     for(int i = start; i <= end; i++){
-       // free(ram[i]);
+        free(ram[i]);
         ram[i] = NULL;
     }
-    programCount --;
+}
+
+void resetFlag(){
+    loadErrorFlag = 0;
+    //clear all of the RAM
+    clearProgram(0, 999);
 }
 
 //clears all the memory from ram

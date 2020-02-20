@@ -80,18 +80,16 @@ int parse(char* userInput){
 }
 
 
-int main() {
+int shellUI() {
     word_length = 100;
     words_num = 3;
     char prompt[100] = "$";
     char userInput[word_length];
     int errorCode = 0;
 
+    //instantiate the shell memory
     initMemory();
-    initRam();
-    initCPU();
 
-    printf("Kernel 1.0 loaded!\n");
     printf("Welcome to the Alison shell!\n");
     printf("Shell Version 2.0 Updated February 2020\n");
 
@@ -113,6 +111,10 @@ int main() {
             //error code for scripts that can't be found
         else if(errorCode == 2){
             printf("Script not found.\n");
+        }
+        //error code for not being enough space to load programs into ram
+        else if(errorCode == 4){
+            printf("Error: there was not enough space to load the program(s) into RAM.\n");
         }
 
     }

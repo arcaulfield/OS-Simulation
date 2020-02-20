@@ -1,13 +1,26 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include "ram.h"
 #include "pcb.h"
 #include "cpu.h"
 #include "interpreter.h"
+#include "shell.h"
 
 
+//Ready queue
 PCB *head, *tail;
+
+//clears all programs from the ready queue
+//also clears programs from RAM
+void clearReadyQueue(){
+    while(head != NULL){
+        PCB * pcb = head;
+        head = head->next;
+        clearProgram(pcb->start, pcb->end);
+        clearPCB(pcb);
+    }
+    tail = NULL;
+}
 
 //adds a PCB to the back of the ready queue
 void addToReady(PCB* newPCB){
@@ -25,14 +38,15 @@ void addToReady(PCB* newPCB){
 void removeFromReady(PCB* pcb){
     //remove from ready list
     PCB* node = head;
-    if(head->next == NULL){
-        head = NULL;
-        tail = NULL;
+    if(head == NULL){
+        return;
     }
-        //we should only be removing from the head in general
-    else if(head->start == pcb->start && head->end == pcb->end){
+    //if the pcb is the head, then remove it
+    if(head->start == pcb->start && head->end == pcb->end){
         head = head->next;
     }
+    //we should only be removing from the head in general
+    //however this allows for PCBs to be removed from anywhere in the list should this ever be needed
     else{
         while(node->next != NULL ){
             if(node->next->start == pcb->start && node->next->end == pcb->end){
@@ -54,10 +68,10 @@ void printReadyQueue(){
     PCB* node = head;
     while(node != NULL){
         printf("PCB with start %d, end %d and program counter %d\n", node->start, node->end, node->PC);
-        //printRam(node->start, node->end);
         node = node->next;
     }
 }
+
 
 int myinit(char *filename){
     int start = 0;
@@ -77,8 +91,11 @@ int myinit(char *filename){
         return errorCode;
     }
 
-    int errorCode = addToRam(file, &start, &end);
-    if(errorCode !=  0){
+    addToRam(file, &start, &end);
+    if(checkErrorFlag() == 1){
+        //reset the flag
+        resetFlag();
+        int errorCode = 4; //not enough space in RAM error
         return errorCode;
     }
     PCB* newPCB = makePCB(start, end);
@@ -93,6 +110,7 @@ int myinit(char *filename){
 
 
 //This function is called once a program has finished executing.
+//It clears the program from RAM
 void finishExecuting(PCB* pcb){
 
     removeFromReady(pcb);
@@ -116,7 +134,7 @@ int scheduler(){
         if(cpuAvailable() == 0){
             //shorten the length of the quanta if the number of lines left in the program is less than the quanta
             if(pcb->end - pcb->PC < quanta){
-                quanta = pcb->PC - pcb->end + 1;
+                quanta = pcb->end - pcb->PC + 1;
             }
 
             updateIP(pcb->PC);
@@ -146,5 +164,17 @@ int scheduler(){
 
     }
     return 0;
+}
+
+int main(){
+
+
+    //instantiate ram
+    initRam();
+    //instantiate the CPU
+    initCPU();
+
+    printf("Kernel 1.0 loaded!\n");
+    shellUI();
 }
 

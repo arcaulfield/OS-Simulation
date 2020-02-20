@@ -17,7 +17,7 @@ int help(){
     printf("quit - exits/terminates the shell\nset VAR STRING - assigns a value to shell memory\n");
     printf("print VAR - displays the STRING assigned to VAR\n");
     printf("run SCRIPT.TXT - executes the file SCRIPT.TXT\n");
-    printf("exec PROG1 PROG2 PROG3 - executes up to three programs\n");
+    printf("exec p1 p2  p3 - executes concurrent programs\n");
     return 0;
 }
 
@@ -30,8 +30,12 @@ int quit(){
         exit(0);
     }
     else{
-        exitProgramFlag = 1;
-        closeFlag = 1;
+        if(inFileCount > 0){
+            closeFlag = 1;
+
+        }else if(inProgramCount > 0){
+            exitProgramFlag = 1;
+        }
         return 0;
     }
 }
@@ -94,11 +98,18 @@ int run(char **words){
 //executes programs simultaneously
 int exec(char** words){
     inProgramCount ++;
+    char* filenames[3];
 
     int i = 0;
     int errorCode = 0;
     char* filename = words[1];
     errorCode = myinit(filename);
+    if(errorCode != 0){
+        clearReadyQueue();
+        inProgramCount--;
+        return errorCode;
+    }
+    filenames[0] = strdup(filename);
 
     //parse words[2] to get 2 file names
     int count  = 0;
@@ -110,11 +121,13 @@ int exec(char** words){
             break;
         }
         count ++;
+        //ensure that only 3 programs can be executed at a time
         if(count > 2){
-            printf("WARNING: only 3 programs can be executed at once. Only the first three inputs will be executed.\n");
-            break;
+            printf("Error: a maximum of three programs can be executed at a time.\n");
+            clearReadyQueue();
+            inProgramCount--;
+            return errorCode;
         }
-        memset(filename, '\0', word_length);
         int j = 0;
         while(words[2][i] != ' ' && words[2][i] != '\0'){
             filename[j] = words[2][i];
@@ -122,8 +135,23 @@ int exec(char** words){
             j++;
         }
         filename[j] = '\0';
-        myinit(filename);
+        for(int k = 0; k < count; k ++){
+            if(strcmp(filenames[k], filename) == 0){
+                printf("Error: Script %s already loaded\n", filename);
+                clearReadyQueue();
+                inProgramCount--;
+                return errorCode;
+            }
+        }
+        filenames[count] = strdup(filename);
+        errorCode = myinit(filename);
+        if(errorCode != 0){
+            clearReadyQueue();
+            inProgramCount--;
+            return errorCode;
+        }
     }
+
     scheduler();
 
     inProgramCount--;
