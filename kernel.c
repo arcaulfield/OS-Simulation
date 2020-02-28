@@ -82,6 +82,7 @@ void printReadyQueue(){
 //opens the file, adds the program to ram
 //then creates a new pcb and adds to the end of the ready queue
 int myinit(char *filename){
+    printf("myinit has the file %s\n", filename);
     int start = 0;
     int end = 0;
 
@@ -96,6 +97,7 @@ int myinit(char *filename){
 
     if(file == NULL){
         int errorCode = 2; // file not found error
+        printf("%s", filename);
         return errorCode;
     }
 

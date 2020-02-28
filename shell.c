@@ -4,8 +4,6 @@
 #include <zconf.h>
 #include "interpreter.h"
 #include "shellmemory.h"
-#include "ram.h"
-#include "cpu.h"
 
 int words_num;
 int word_length;
@@ -18,6 +16,7 @@ int parse(char* userInput){
     char **parsedString = (char **) malloc(sizeof(char *) * words_num);
     for (size_t i = 0; i < words_num; i++) {
         parsedString[i] = (char *) malloc(sizeof(char) * word_length);
+        parsedString[i][0] = '\0';
     }
 
     int letterNum = 0;
@@ -68,7 +67,6 @@ int parse(char* userInput){
         parsedString[wordNum][letterNum - 2] = '\0';
     }
 
-
     errorCode = interpreter(parsedString);
 
     //free the memory used for the parsed strings
@@ -99,10 +97,11 @@ int shellUI() {
         if(feof(stdin)){
             int fd = dup(fileno(stdin));
             (void) freopen("/dev/tty", "r", stdin);
+
         }
-        else {
-            printf("%s", prompt);
-        }
+
+        printf("%s", prompt);
+
 
         memset(userInput, '\0', (word_length));
         fgets(userInput, word_length, stdin);

@@ -108,6 +108,7 @@ int exec(char** words){
     int i = 0;
     int errorCode = 0;
     char* filename = words[1];
+    printf("calling myinit with file name %s\n", filename);
     errorCode = myinit(filename);
     if(errorCode != 0){
         clearReadyQueue();
