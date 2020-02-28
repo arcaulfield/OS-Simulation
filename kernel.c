@@ -105,7 +105,7 @@ int myinit(char *filename){
     strcat(newfile, filename);
 
     //WHEN NOT DEBUGGING, SET newfile to filename
-    FILE *file = fopen(filename, "rt");
+    FILE *file = fopen(newfile, "rt");
 
     if(file == NULL){
         int errorCode = 2; // file not found error

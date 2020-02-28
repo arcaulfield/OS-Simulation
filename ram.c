@@ -42,7 +42,6 @@ void addToRam(FILE *p, int* start, int* end){
 
     //load the file into RAM line by line
     while(!feof(p)){
-        ram[k] = (char *) malloc(1000 * sizeof(char));
         ram[k] = strdup(buffer);
         k++;
         //if there isn't enought space in RAM, deal with the error

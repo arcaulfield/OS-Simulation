@@ -15,6 +15,9 @@ struct MEM** memory;
 
 void initMemory(){
     memory = (struct MEM **) malloc(1000 * sizeof(struct MEM*));
+    for(int i = 0; i < 1000; i ++){
+        memory[i] = NULL;
+    }
 }
 //gets the value of a variable saved in memory
 char* getVal(char* var){

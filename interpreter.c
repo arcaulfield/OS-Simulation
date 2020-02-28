@@ -4,6 +4,7 @@
 #include "shellmemory.h"
 #include "shell.h"
 #include "kernel.h"
+#include "ram.h"
 
 int exitProgramFlag = 0;
 
@@ -75,8 +76,7 @@ static int run(char **words){
     int errorCode = 0;
     char line[1000];
 
-    //WHEN NOT DEBUGGING, SET newfile to filename
-    FILE *p = fopen(filename, "rt");
+    FILE *p = fopen(newfile, "rt");
     if(p == NULL){
         inFileCount--;
         errorCode = 2;
@@ -105,6 +105,9 @@ int exec(char** words){
     inProgramCount ++;
     //keep track of filenames to watch for duplicates
     char* filenames[3];
+    for(int i = 0; i < 3; i ++ ){
+        filenames[i] = NULL;
+    }
 
     int i = 0;
     int errorCode = 0;
@@ -150,6 +153,11 @@ int exec(char** words){
                 printf("Error: Script %s already loaded\n", filename);
                 clearReadyQueue();
                 inProgramCount--;
+                for(int i = 0; i < 3; i++){
+                    if(filenames[i] != NULL){
+                        free(filenames[i]);
+                    }
+                }
                 return errorCode;
             }
         }
@@ -159,7 +167,18 @@ int exec(char** words){
         if(errorCode != 0){
             clearReadyQueue();
             inProgramCount--;
+            for(int i = 0; i < 3; i++){
+                if(filenames[i] != NULL){
+                    free(filenames[i]);
+                }
+            }
             return errorCode;
+        }
+    }
+
+    for(int i = 0; i < 3; i++){
+        if(filenames[i] != NULL){
+            free(filenames[i]);
         }
     }
 

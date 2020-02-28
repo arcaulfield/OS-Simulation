@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zconf.h>
 #include "interpreter.h"
 #include "shellmemory.h"
 
@@ -17,10 +16,6 @@ int parse(char* userInput){
         parsedString[i] = (char *) malloc(sizeof(char) * word_length);
         parsedString[i][0] = '\0';
     }
-//    char parsedString[words_num][word_length];
-//    for (int i = 0; i < words_num; i++){
-//        parsedString[i][0] = '\0';
-//    }
 
     int letterNum = 0;
     int wordNum = 0;
