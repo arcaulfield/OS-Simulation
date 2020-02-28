@@ -3,8 +3,7 @@
 
 int cpuAvailable();
 void initCPU();
-
-int runQ(int quanta);
+int run(int quanta);
 void updateIP(int ip);
 
 #endif //ASSIGNMENT2_CPU_H

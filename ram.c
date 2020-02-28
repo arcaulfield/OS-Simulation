@@ -2,24 +2,30 @@
 #include <stdio.h>
 #include <string.h>
 
+//****PRIVATE VARIABLES****
+
+
 char *ram[1000];
 
 //this is a flag that indicates that there isn't enough space to load the program into RAM
 //this is used because addToRam must return void
+//if loadErrorFlag == 1, then there wasn't enough space to load the program into RAM
 int loadErrorFlag = 0;
 
-int checkErrorFlag(){
-    return loadErrorFlag;
-}
 
-//initializes RAM
+//****PUBLIC METHODS****
+
+//initializes RAM, by setting everything to NULL
 void initRam(){
     for(int i = 0; i < 1000; i++){
         ram[i] = NULL;
     }
 }
 
+//adds a new program to RAM
 void addToRam(FILE *p, int* start, int* end){
+
+    //find the first NULL space in RAM
     int k = 0;
     for(int i =0; i < 1000; i++){
         if (ram[i] == NULL){
@@ -29,16 +35,20 @@ void addToRam(FILE *p, int* start, int* end){
         }
     }
 
+    //get a line from the file
     char buffer[1000];
     fgets(buffer, 999, p);
 
+    //load the file into RAM line by line
     while(!feof(p)){
         ram[k] = (char *) malloc(1000 * sizeof(char));
         ram[k] = strdup(buffer);
         k++;
+        //if there isn't enought space in RAM, deal with the error
         if(k > 999 || ram[k] != NULL){
             *end = k - 1;
             fclose(p);
+            //set the load error flag to 1, indicating that there isn't enough space in RAM
             loadErrorFlag = 1;
             return;
         }
@@ -48,16 +58,9 @@ void addToRam(FILE *p, int* start, int* end){
     *end = k - 1;
     fclose(p);
 }
-//print function added for debugging purposes
-void printRam(int start, int end){
-    printf("PROGRAM:\n");
-    printf("start pointer: %d; end pointer: %d\n", start, end);
-    for(int i = start; i <= end; i++){
-        printf("%s", ram[i]);
-    }
-}
 
 
+//clears a program from RAM
 void clearProgram(int start, int end){
     for(int i = start; i <= end; i++){
         free(ram[i]);
@@ -65,22 +68,28 @@ void clearProgram(int start, int end){
     }
 }
 
-void resetFlag(){
-    loadErrorFlag = 0;
-    //clear all of the RAM
-    clearProgram(0, 999);
+//returns the value of the load error flag
+int checkErrorFlag(){
+    return loadErrorFlag;
 }
 
-//clears all the memory from ram
-//called when program finishes running
-void clearAllRam(){
-    for(int i = 0; i < 1000; i ++){
-        free(ram[i]);
-    }
+//resets the load error flag value to 0 (indicating that there is no error)
+void resetFlag(){
+    loadErrorFlag = 0;
 }
 
 //returns a line from RAM
 char * getLineFromRam(int line){
     return strdup(ram[line]);
+}
+
+//Prints the contents of RAM
+//This is only used for debugging purposes
+void printRam(int start, int end){
+    printf("PROGRAM:\n");
+    printf("start pointer: %d; end pointer: %d\n", start, end);
+    for(int i = start; i <= end; i++){
+        printf("%s", ram[i]);
+    }
 }
 

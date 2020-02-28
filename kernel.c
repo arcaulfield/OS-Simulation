@@ -6,13 +6,17 @@
 #include "interpreter.h"
 #include "shell.h"
 
+//****PRIVATE VARIABLES****
 
 //Ready queue
 PCB *head, *tail;
 
+//****PRIVATE METHODS****
+
 //clears all programs from the ready queue
-//also clears programs from RAM
+//also clears programs from RAM and destroys the PCBs
 void clearReadyQueue(){
+    //iterate through the queue clearing the programs
     while(head != NULL){
         PCB * pcb = head;
         head = head->next;
@@ -34,7 +38,7 @@ void addToReady(PCB* newPCB){
     }
 }
 
-//removes a PCB from the ready list
+//removes a PCB from the ready queue
 void removeFromReady(PCB* pcb){
     //remove from ready list
     PCB* node = head;
@@ -72,7 +76,11 @@ void printReadyQueue(){
     }
 }
 
+//****PUBLIC METHODS****
 
+//initializes a program
+//opens the file, adds the program to ram
+//then creates a new pcb and adds to the end of the ready queue
 int myinit(char *filename){
     int start = 0;
     int end = 0;
@@ -84,68 +92,90 @@ int myinit(char *filename){
     strcat(newfile, filename);
 
     //WHEN NOT DEBUGGING, SET newfile to filename
-    FILE *file = fopen(newfile, "rt");
+    FILE *file = fopen(filename, "rt");
 
     if(file == NULL){
         int errorCode = 2; // file not found error
         return errorCode;
     }
 
+    //add the program to RAM
     addToRam(file, &start, &end);
+    //check if there was an error loading to RAM and handle accordingly
     if(checkErrorFlag() == 1){
         //reset the flag
         resetFlag();
+        //clear all of ram
+        clearProgram(0, 999);
         int errorCode = 4; //not enough space in RAM error
         return errorCode;
     }
+
+    //create a new PCB
     PCB* newPCB = makePCB(start, end);
 
-   // printf("Created a PCB with start %d, end %d and program counter %d\n", newPCB->start, newPCB->end, newPCB->PC);
-
+    //add the PCB to the read list
     addToReady(newPCB);
-    //printReadyQueue();
+
     fclose(file);
     return 0;
 }
 
 
 //This function is called once a program has finished executing.
-//It clears the program from RAM
+//It clears the program from RAM and destroys the PCB
 void finishExecuting(PCB* pcb){
-
-    removeFromReady(pcb);
 
     //clear program from ram
     clearProgram(pcb->start, pcb->end);
+
+    //remove the PCB from the Ready list
+    removeFromReady(pcb);
 
     //clear PCB
     clearPCB(pcb);
 }
 
 
+//runs the programs that are on the ready queue
+//each program runs for a quanta then is placed at the back of the ready queue
 int scheduler(){
     int quanta = 2;
     int errorCode = 0;
     PCB* pcb = head;
 
-    printf("AFTER PUTTING ON RUN LIST, WE GET THE FOLLOWING READY LIST:\n");
-    printReadyQueue();
     while(pcb != NULL){
+        //check if the CPU is available
         if(cpuAvailable() == 0){
-            //shorten the length of the quanta if the number of lines left in the program is less than the quanta
+
+            //shorten the length of the quanta if the number of lines left in the program is less than one quanta
             if(pcb->end - pcb->PC < quanta){
                 quanta = pcb->end - pcb->PC + 1;
             }
-
+            //update the instruction pointer of the CPU
             updateIP(pcb->PC);
-            printf("***EXECUTING***\n\n");
-            errorCode = runQ(quanta);
-            printf("\n******\n");
+
+            //run the CPU
+            errorCode = run(quanta);
+
+            //handle any errors
             if(errorCode != 0 || exitProgramFlag == 1){
+                //print information about the error code for the user
+                if(errorCode == 1){
+                    printf("Unknown command.\n");
+                }
+                //error code for scripts that can't be found
+                else if(errorCode == 2){
+                    printf("Script not found.\n");
+                }
+                //error code for not being enough space to load programs into ram
+                else if(errorCode == 4){
+                    printf("Error: there was not enough space to load the program(s) into RAM.\n");
+                }
                 exitProgramFlag = 0;
                 finishExecuting(pcb);
-            }
-            else{
+
+            } else {
                 pcb->PC = pcb->PC + quanta;
                 if(pcb->PC > pcb->end){
                     finishExecuting(pcb);
@@ -155,8 +185,6 @@ int scheduler(){
                     addToReady(pcb);
                 }
             }
-            printf("AFTER ONE QUANTA, THE READY LIST LOOKS LIKE THIS:\n");
-            printReadyQueue();
 
             pcb = head;
             quanta = 2;
@@ -166,9 +194,8 @@ int scheduler(){
     return 0;
 }
 
+
 int main(){
-
-
     //instantiate ram
     initRam();
     //instantiate the CPU

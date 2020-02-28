@@ -1090,4 +1090,5 @@ set x 10
 set x 20
 set x 10
 set x 20
+print x
 quit

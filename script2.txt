@@ -1,4 +1,3 @@
 set y 20
-run script3.txt
 print y
 quit

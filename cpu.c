@@ -4,6 +4,7 @@
 #include "shell.h"
 #include "interpreter.h"
 
+//****PRIVATE VARIABLES****
 
 typedef struct CPU{
     int IP;
@@ -13,17 +14,21 @@ typedef struct CPU{
 
 CPU* myCPU;
 
+//****PUBLIC METHODS****
+
+//initialise the CPU
 void initCPU(){
     myCPU = (CPU*) malloc(sizeof(CPU*));
     myCPU->quanta = 2;
     myCPU->IR[0] = '\0';
 }
 
+//updates the instruction pointer's value
 void updateIP(int ip){
     myCPU->IP = ip;
 }
 
-//return 0 is the CPU is available, return 1 otherwise
+//return 0 if the CPU is available, return 1 otherwise
 //the CPU is available if the quanta is finished or if nothing has been assigned to the CPU
 int cpuAvailable(){
     if(myCPU->quanta == 2 || strcmp(myCPU->IR, "\0") == 0){
@@ -34,15 +39,20 @@ int cpuAvailable(){
     }
 }
 
-int runQ(int quanta){
+//runs the CPU for a quanta
+int run(int quanta){
     myCPU->quanta = 0;
     int errorCode = 0;
-    //Copy over quanta number of lines of code
+    //Run quanta number of lines
     while(myCPU->quanta < quanta){
-        char* line = getLineFromRam(myCPU->IP);
+        //get a line from RAM
+        strcpy(myCPU->IR, getLineFromRam(myCPU->IP));
+
         myCPU->IP ++;
-        errorCode = parse(line);
-        free(line);
+
+        //parse, interpret and run line
+        errorCode = parse(myCPU->IR);
+
         if(errorCode != 0 || exitProgramFlag == 1){
             myCPU->quanta = 2;
             myCPU->IR[0] = '\0';

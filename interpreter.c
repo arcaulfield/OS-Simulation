@@ -7,7 +7,10 @@
 
 int exitProgramFlag = 0;
 
+//keeps track of the number of files that are open
 int inFileCount = 0;
+
+//keeps track of the number of programs that are open
 int inProgramCount = 0;
 int closeFlag = 0;
 
@@ -57,7 +60,7 @@ int print(char ** words){
 }
 
 //runs scripts
-int run(char **words){
+static int run(char **words){
 
     inFileCount ++;
     char *filename = words[1];
@@ -72,8 +75,9 @@ int run(char **words){
     char line[1000];
 
     //WHEN NOT DEBUGGING, SET newfile to filename
-    FILE *p = fopen(newfile, "rt");
+    FILE *p = fopen(filename, "rt");
     if(p == NULL){
+        inFileCount--;
         errorCode = 2;
         return errorCode;
     }
@@ -98,6 +102,7 @@ int run(char **words){
 //executes programs simultaneously
 int exec(char** words){
     inProgramCount ++;
+    //keep track of filenames to watch for duplicates
     char* filenames[3];
 
     int i = 0;
@@ -111,7 +116,8 @@ int exec(char** words){
     }
     filenames[0] = strdup(filename);
 
-    //parse words[2] to get 2 file names
+    //parse words[2] to get 2 filenames
+    //print an error message if too many files are loaded or if a file name is repeated in the exec call
     int count  = 0;
     while(words[2][i] != '\0'){
         while(words[2][i] == ' '){
@@ -128,14 +134,17 @@ int exec(char** words){
             inProgramCount--;
             return errorCode;
         }
+
         int j = 0;
         while(words[2][i] != ' ' && words[2][i] != '\0'){
             filename[j] = words[2][i];
             i++;
             j++;
         }
+
         filename[j] = '\0';
         for(int k = 0; k < count; k ++){
+            //print an error message if the file has already been loaded and terminate exec
             if(strcmp(filenames[k], filename) == 0){
                 printf("Error: Script %s already loaded\n", filename);
                 clearReadyQueue();
@@ -144,6 +153,7 @@ int exec(char** words){
             }
         }
         filenames[count] = strdup(filename);
+        //initialise the file
         errorCode = myinit(filename);
         if(errorCode != 0){
             clearReadyQueue();
@@ -152,6 +162,7 @@ int exec(char** words){
         }
     }
 
+    //call the scheduler
     scheduler();
 
     inProgramCount--;

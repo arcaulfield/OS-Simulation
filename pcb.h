@@ -1,6 +1,7 @@
 #ifndef ASSIGNMENT2_PCB_H
 #define ASSIGNMENT2_PCB_H
 
+//PCB struct
 typedef struct PCB{
     int PC;
     int start;
