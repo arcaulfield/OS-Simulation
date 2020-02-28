@@ -37,6 +37,7 @@ void addToRam(FILE *p, int* start, int* end){
 
     //get a line from the file
     char buffer[1000];
+    memset(buffer, '\0', 1000);
     fgets(buffer, 999, p);
 
     //load the file into RAM line by line
@@ -52,6 +53,7 @@ void addToRam(FILE *p, int* start, int* end){
             loadErrorFlag = 1;
             return;
         }
+        memset(buffer, '\0', 1000);
         fgets(buffer, 999, p);
     }
 
@@ -63,8 +65,10 @@ void addToRam(FILE *p, int* start, int* end){
 //clears a program from RAM
 void clearProgram(int start, int end){
     for(int i = start; i <= end; i++){
-        free(ram[i]);
-        ram[i] = NULL;
+        if(ram[i] != NULL){
+            free(ram[i]);
+            ram[i] = NULL;
+        }
     }
 }
 

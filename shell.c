@@ -12,12 +12,15 @@ int word_length;
 int parse(char* userInput){
     int errorCode = 0;
 
-    //ERROR OCCURS AFTER THIS LINE
     char **parsedString = (char **) malloc(sizeof(char *) * words_num);
-    for (size_t i = 0; i < words_num; i++) {
+    for (int i = 0; i < words_num; i++) {
         parsedString[i] = (char *) malloc(sizeof(char) * word_length);
         parsedString[i][0] = '\0';
     }
+//    char parsedString[words_num][word_length];
+//    for (int i = 0; i < words_num; i++){
+//        parsedString[i][0] = '\0';
+//    }
 
     int letterNum = 0;
     int wordNum = 0;
@@ -70,7 +73,7 @@ int parse(char* userInput){
     errorCode = interpreter(parsedString);
 
     //free the memory used for the parsed strings
-    for (size_t i = 0; i < words_num; i++) {
+    for (int i = 0; i < words_num; i++) {
         free(parsedString[i]);
     }
     free(parsedString);
@@ -95,9 +98,8 @@ int shellUI() {
     while(1) {
         //ensure that the user regains access to the keyboard after using a testfile
         if(feof(stdin)){
-            int fd = dup(fileno(stdin));
             (void) freopen("/dev/tty", "r", stdin);
-
+            continue;
         }
 
         printf("%s", prompt);

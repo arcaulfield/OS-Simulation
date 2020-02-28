@@ -5,5 +5,6 @@ int cpuAvailable();
 void initCPU();
 int run(int quanta);
 void updateIP(int ip);
+void freeMyCPU();
 
 #endif //ASSIGNMENT2_CPU_H

@@ -47,11 +47,18 @@ void removeFromReady(PCB* pcb){
     }
     //if the pcb is the head, then remove it
     if(head->start == pcb->start && head->end == pcb->end){
-        head = head->next;
+        if(tail->start == pcb->start && tail->end == pcb->end){
+            tail = NULL;
+            head = NULL;
+        }
+        else{
+            head = head->next;
+        }
     }
     //we should only be removing from the head in general
     //however this allows for PCBs to be removed from anywhere in the list should this ever be needed
     else{
+        printf("SOMETHING IS FISHY!\n");
         while(node->next != NULL ){
             if(node->next->start == pcb->start && node->next->end == pcb->end){
                 node->next = node->next->next;
@@ -61,8 +68,9 @@ void removeFromReady(PCB* pcb){
             }
             node = node->next;
         }
+        node->next = NULL;
     }
-    node->next = NULL;
+
 }
 
 //prints the contents of the ready queue
@@ -76,13 +84,17 @@ void printReadyQueue(){
     }
 }
 
+void initReadyQueue(){
+    head = NULL;
+    tail = NULL;
+}
+
 //****PUBLIC METHODS****
 
 //initializes a program
 //opens the file, adds the program to ram
 //then creates a new pcb and adds to the end of the ready queue
 int myinit(char *filename){
-    printf("myinit has the file %s\n", filename);
     int start = 0;
     int end = 0;
 
@@ -97,7 +109,6 @@ int myinit(char *filename){
 
     if(file == NULL){
         int errorCode = 2; // file not found error
-        printf("%s", filename);
         return errorCode;
     }
 
@@ -110,6 +121,7 @@ int myinit(char *filename){
         //clear all of ram
         clearProgram(0, 999);
         int errorCode = 4; //not enough space in RAM error
+        fclose(file);
         return errorCode;
     }
 
@@ -160,20 +172,23 @@ int scheduler(){
             //run the CPU
             errorCode = run(quanta);
 
+
             //handle any errors
-            if(errorCode != 0 || exitProgramFlag == 1){
+            if(exitProgramFlag == 1 || errorCode != 0){
+
                 //print information about the error code for the user
                 if(errorCode == 1){
                     printf("Unknown command.\n");
                 }
-                //error code for scripts that can't be found
+                    //error code for scripts that can't be found
                 else if(errorCode == 2){
                     printf("Script not found.\n");
                 }
-                //error code for not being enough space to load programs into ram
+                    //error code for not being enough space to load programs into ram
                 else if(errorCode == 4){
                     printf("Error: there was not enough space to load the program(s) into RAM.\n");
                 }
+
                 exitProgramFlag = 0;
                 finishExecuting(pcb);
 
@@ -196,12 +211,18 @@ int scheduler(){
     return 0;
 }
 
+void freeCPU(){
+    freeMyCPU();
+}
+
 
 int main(){
     //instantiate ram
     initRam();
     //instantiate the CPU
     initCPU();
+    //initialize the ready queue
+    initReadyQueue();
 
     printf("Kernel 1.0 loaded!\n");
     shellUI();

@@ -4,5 +4,6 @@
 int myinit(char *filename);
 int scheduler();
 void clearReadyQueue();
+void freeCPU();
 
 #endif //ASSIGNMENT2_KERNEL_H

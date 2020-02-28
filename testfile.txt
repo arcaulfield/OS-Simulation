@@ -7,7 +7,7 @@ print mary
 print tom
 print bob
 print bobbie
-run script2.txt
-exec stript2.txt script2.txt script3.txt
-exec stript2.txt script2.txt
+run script1.txt
+exec script1.txt script2.txt script3.txt
+exec script2.txt script1.txt
 run script3.txt

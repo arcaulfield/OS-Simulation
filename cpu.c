@@ -16,11 +16,17 @@ CPU* myCPU;
 
 //****PUBLIC METHODS****
 
+
 //initialise the CPU
 void initCPU(){
     myCPU = (CPU*) malloc(sizeof(CPU*));
     myCPU->quanta = 2;
     myCPU->IR[0] = '\0';
+}
+
+//frees the CPU
+void freeMyCPU(){
+    free(myCPU);
 }
 
 //updates the instruction pointer's value
