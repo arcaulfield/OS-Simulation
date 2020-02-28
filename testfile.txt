@@ -11,4 +11,3 @@ run script2.txt
 exec stript2.txt script2.txt script3.txt
 exec stript2.txt script2.txt
 run script3.txt
-quit

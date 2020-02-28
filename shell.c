@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <zconf.h>
 #include "interpreter.h"
 #include "shellmemory.h"
 #include "ram.h"
@@ -94,11 +95,17 @@ int shellUI() {
     printf("Shell Version 2.0 Updated February 2020\n");
 
     while(1) {
-        printf("%s", prompt);
+        //ensure that the user regains access to the keyboard after using a testfile
+        if(feof(stdin)){
+            int fd = dup(fileno(stdin));
+            (void) freopen("/dev/tty", "r", stdin);
+        }
+        else {
+            printf("%s", prompt);
+        }
 
         memset(userInput, '\0', (word_length));
         fgets(userInput, word_length, stdin);
-
 
         //parse through the user input and save the result in parsedString
         errorCode = parse(userInput);
