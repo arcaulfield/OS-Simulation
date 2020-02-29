@@ -19,7 +19,7 @@ CPU* myCPU;
 
 //initialise the CPU
 void initCPU(){
-    myCPU = (CPU*) malloc(sizeof(CPU*));
+    myCPU = (CPU*) malloc(sizeof(CPU));
     myCPU->quanta = 2;
     myCPU->IR[0] = '\0';
 }

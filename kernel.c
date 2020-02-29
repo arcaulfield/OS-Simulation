@@ -41,7 +41,6 @@ void addToReady(PCB* newPCB){
 //removes a PCB from the ready queue
 void removeFromReady(PCB* pcb){
     //remove from ready list
-    PCB* node = head;
     if(head == NULL){
         return;
     }
@@ -53,12 +52,13 @@ void removeFromReady(PCB* pcb){
         }
         else{
             head = head->next;
+            pcb->next = NULL;
         }
     }
     //we should only be removing from the head in general
     //however this allows for PCBs to be removed from anywhere in the list should this ever be needed
     else{
-        printf("SOMETHING IS FISHY!\n");
+        PCB* node = head;
         while(node->next != NULL ){
             if(node->next->start == pcb->start && node->next->end == pcb->end){
                 node->next = node->next->next;
@@ -98,14 +98,7 @@ int myinit(char *filename){
     int start = 0;
     int end = 0;
 
-    //FOR DEBUGGING PURPOSES
-    char newfile[100];
-    memset(newfile, '\0', 100);
-    strcat(newfile, "../");
-    strcat(newfile, filename);
-
-    //WHEN NOT DEBUGGING, SET newfile to filename
-    FILE *file = fopen(newfile, "rt");
+    FILE *file = fopen(filename, "rt");
 
     if(file == NULL){
         int errorCode = 2; // file not found error
@@ -171,7 +164,6 @@ int scheduler(){
 
             //run the CPU
             errorCode = run(quanta);
-
 
             //handle any errors
             if(exitProgramFlag == 1 || errorCode != 0){

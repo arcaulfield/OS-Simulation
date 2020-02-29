@@ -37,27 +37,28 @@ void addToRam(FILE *p, int* start, int* end){
 
     //get a line from the file
     char buffer[1000];
-    memset(buffer, '\0', 1000);
-    fgets(buffer, 999, p);
 
     //load the file into RAM line by line
     while(!feof(p)){
+        memset(buffer, '\0', 999);
+        fgets(buffer, 999, p);
+        //remove blank lines
+        if(strcmp(buffer, "") ==0) {
+            continue;
+        }
         ram[k] = strdup(buffer);
         k++;
         //if there isn't enought space in RAM, deal with the error
         if(k > 999 || ram[k] != NULL){
             *end = k - 1;
-            fclose(p);
             //set the load error flag to 1, indicating that there isn't enough space in RAM
             loadErrorFlag = 1;
             return;
         }
-        memset(buffer, '\0', 1000);
-        fgets(buffer, 999, p);
     }
 
     *end = k - 1;
-    fclose(p);
+
 }
 
 

@@ -67,16 +67,10 @@ static int run(char **words){
     inFileCount ++;
     char *filename = words[1];
 
-    //FOR DEBUGGING PURPOSES
-    char newfile[100];
-    memset(newfile, '\0', 100);
-    strcat(newfile, "../");
-    strcat(newfile, filename);
-
     int errorCode = 0;
     char line[1000];
 
-    FILE *p = fopen(newfile, "rt");
+    FILE *p = fopen(filename, "rt");
     if(p == NULL){
         inFileCount--;
         errorCode = 2;
