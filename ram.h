@@ -3,9 +3,12 @@
 #define ASSIGNMENT2_RAM_H
 #include <stdio.h>
 
-void initRam();
+//string arrays of size 40
+extern char *ram[1000];
+
+
 void resetFlag();
-int addToRam(FILE *p, int* start, int* end);
+void addToRam(FILE *p, int* start, int* end);
 void clearProgram(int start, int end);
 char* getLineFromRam(int line);
 int checkErrorFlag();

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "ram.h"
 #include "pcb.h"
 #include "cpu.h"
@@ -98,7 +99,13 @@ int myinit(char *filename){
     int start = 0;
     int end = 0;
 
-    FILE *file = fopen(filename, "rt");
+    //FOR DEBUGGING PURPOSES
+    char newfile[100];
+    memset(newfile, '\0', 100);
+    strcat(newfile, "../");
+    strcat(newfile, filename);
+
+    FILE *file = fopen(newfile, "rt");
 
     if(file == NULL){
         int errorCode = 2; // file not found error
@@ -208,15 +215,34 @@ void freeCPU(){
 }
 
 
-int main(){
-    //instantiate ram
-    initRam();
+int kernel(){
     //instantiate the CPU
     initCPU();
     //initialize the ready queue
     initReadyQueue();
 
     printf("Kernel 1.0 loaded!\n");
-    shellUI();
+    int error = shellUI();
+    return error;
 }
 
+
+void boot(){
+    //initialize all cells of ram to null, indicating that there are no pages of code in RAM
+    for(int i = 0; i < 1000; i++){
+        ram[i] = NULL;
+    }
+
+    // REMOVE THE ../ FOR NON DEBUG MODE
+    system("rm -rf ../BackingStore/");
+    //ERROR HANDLING!
+    system("mkdir ../BackingStore");
+}
+
+
+int main(){
+    int error = 0;
+    boot();
+    error = kernel();
+    return error;
+}

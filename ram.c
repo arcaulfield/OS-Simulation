@@ -2,10 +2,12 @@
 #include <stdio.h>
 #include <string.h>
 
-//****PRIVATE VARIABLES****
 
-
+//****PUBLIC VARIABLES****
+//string arrays of size 40
 char *ram[1000];
+
+//****PRIVATE VARIABLES****
 
 //this is a flag that indicates that there isn't enough space to load the program into RAM
 //this is used because addToRam must return void
@@ -14,13 +16,6 @@ int loadErrorFlag = 0;
 
 
 //****PUBLIC METHODS****
-
-//initializes RAM, by setting everything to NULL
-void initRam(){
-    for(int i = 0; i < 1000; i++){
-        ram[i] = NULL;
-    }
-}
 
 //adds a new program to RAM
 void addToRam(FILE *p, int* start, int* end){
@@ -48,7 +43,7 @@ void addToRam(FILE *p, int* start, int* end){
         }
         ram[k] = strdup(buffer);
         k++;
-        //if there isn't enought space in RAM, deal with the error
+        //if there isn't enough space in RAM, deal with the error
         if(k > 999 || ram[k] != NULL){
             *end = k - 1;
             //set the load error flag to 1, indicating that there isn't enough space in RAM
