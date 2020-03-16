@@ -14,7 +14,6 @@ char *ram[1000];
 //if loadErrorFlag == 1, then there wasn't enough space to load the program into RAM
 int loadErrorFlag = 0;
 
-
 //****PUBLIC METHODS****
 
 //adds a new program to RAM

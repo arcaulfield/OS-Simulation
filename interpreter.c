@@ -103,11 +103,6 @@ static int run(char **words){
 //executes programs simultaneously
 int exec(char** words){
     inProgramCount ++;
-    //keep track of filenames to watch for duplicates
-    char* filenames[3];
-    for(int i = 0; i < 3; i ++ ){
-        filenames[i] = NULL;
-    }
 
     int i = 0;
     int errorCode = 0;
@@ -118,7 +113,6 @@ int exec(char** words){
         inProgramCount--;
         return errorCode;
     }
-    filenames[0] = strdup(filename);
 
     //parse words[2] to get 2 filenames
     //print an error message if too many files are loaded or if a file name is repeated in the exec call
@@ -147,38 +141,13 @@ int exec(char** words){
         }
 
         filename[j] = '\0';
-        for(int k = 0; k < count; k ++){
-            //print an error message if the file has already been loaded and terminate exec
-            if(strcmp(filenames[k], filename) == 0){
-                printf("Error: Script %s already loaded\n", filename);
-                clearReadyQueue();
-                inProgramCount--;
-                for(int i = 0; i < 3; i++){
-                    if(filenames[i] != NULL){
-                        free(filenames[i]);
-                    }
-                }
-                return errorCode;
-            }
-        }
-        filenames[count] = strdup(filename);
+
         //initialise the file
         errorCode = myinit(filename);
         if(errorCode != 0){
             clearReadyQueue();
             inProgramCount--;
-            for(int i = 0; i < 3; i++){
-                if(filenames[i] != NULL){
-                    free(filenames[i]);
-                }
-            }
             return errorCode;
-        }
-    }
-
-    for(int i = 0; i < 3; i++){
-        if(filenames[i] != NULL){
-            free(filenames[i]);
         }
     }
 
