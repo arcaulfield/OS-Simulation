@@ -1,3 +1,6 @@
 set y 20
 print y
+
+
+
 quit

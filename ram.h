@@ -3,8 +3,8 @@
 #define ASSIGNMENT2_RAM_H
 #include <stdio.h>
 
-//string arrays of size 40
-extern char *ram[1000];
+
+extern char *ram[40];
 
 
 void resetFlag();

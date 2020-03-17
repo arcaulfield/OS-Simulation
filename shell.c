@@ -119,6 +119,9 @@ int shellUI() {
         else if(errorCode == 4){
             printf("Error: there was not enough space to load the program(s) into RAM.\n");
         }
+        else if(errorCode == 5){
+            printf("Error: there was an error launching the program.\n");
+        }
 
     }
 

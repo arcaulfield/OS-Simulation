@@ -4,8 +4,7 @@
 
 
 //****PUBLIC VARIABLES****
-//string arrays of size 40
-char *ram[1000];
+char *ram[40];
 
 //****PRIVATE VARIABLES****
 
@@ -21,7 +20,7 @@ void addToRam(FILE *p, int* start, int* end){
 
     //find the first NULL space in RAM
     int k = 0;
-    for(int i =0; i < 1000; i++){
+    for(int i =0; i < 40; i++){
         if (ram[i] == NULL){
             *start = i;
             k = i;
@@ -43,7 +42,7 @@ void addToRam(FILE *p, int* start, int* end){
         ram[k] = strdup(buffer);
         k++;
         //if there isn't enough space in RAM, deal with the error
-        if(k > 999 || ram[k] != NULL){
+        if(k > 39 || ram[k] != NULL){
             *end = k - 1;
             //set the load error flag to 1, indicating that there isn't enough space in RAM
             loadErrorFlag = 1;

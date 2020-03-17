@@ -5,6 +5,7 @@
 #include "shell.h"
 #include "kernel.h"
 #include "ram.h"
+#include "memorymanager.h"
 
 int exitProgramFlag = 0;
 
@@ -107,10 +108,27 @@ int exec(char** words){
     int i = 0;
     int errorCode = 0;
     char* filename = words[1];
-    errorCode = myinit(filename);
-    if(errorCode != 0){
+
+    //FOR DEBUGGING PURPOSES
+    char newfile[100];
+    memset(newfile, '\0', 100);
+    strcat(newfile, "../");
+    strcat(newfile, filename);
+
+    FILE *file = fopen(newfile, "rt");
+
+    if(file == NULL){
+        errorCode = 2; // file not found error
+        return errorCode;
+    }
+
+    //NOTE: launcher clauses the file pointer
+    int err = launcher(file);
+
+    if(err != 1){
         clearReadyQueue();
         inProgramCount--;
+        errorCode = 5;
         return errorCode;
     }
 
@@ -142,11 +160,26 @@ int exec(char** words){
 
         filename[j] = '\0';
 
-        //initialise the file
-        errorCode = myinit(filename);
-        if(errorCode != 0){
+        //FOR DEBUGGING PURPOSES
+        char newfile2[100];
+        memset(newfile2, '\0', 100);
+        strcat(newfile2, "../");
+        strcat(newfile2, filename);
+
+        FILE *file2 = fopen(newfile2, "rt");
+
+        if(file2 == NULL){
+            errorCode = 2; // file not found error
+            return errorCode;
+        }
+
+        //NOTE: launcher clauses the file pointer
+        err = launcher(file2);
+
+        if(err != 1){
             clearReadyQueue();
             inProgramCount--;
+            errorCode = 5;
             return errorCode;
         }
     }

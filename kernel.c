@@ -6,6 +6,7 @@
 #include "cpu.h"
 #include "interpreter.h"
 #include "shell.h"
+#include "memorymanager.h"
 
 //****PRIVATE VARIABLES****
 
@@ -229,9 +230,12 @@ int kernel(){
 
 void boot(){
     //initialize all cells of ram to null, indicating that there are no pages of code in RAM
-    for(int i = 0; i < 1000; i++){
+    for(int i = 0; i < 40; i++){
         ram[i] = NULL;
     }
+
+    //initialize the queue containing all empty frames
+    initEmptyFrameQueue();
 
     // REMOVE THE ../ FOR NON DEBUG MODE
     system("rm -rf ../BackingStore/");
