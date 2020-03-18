@@ -152,6 +152,7 @@ void finishExecuting(PCB* pcb){
 }
 
 
+
 //runs the programs that are on the ready queue
 //each program runs for a quanta then is placed at the back of the ready queue
 int scheduler(){
@@ -168,13 +169,18 @@ int scheduler(){
                 quanta = pcb->end - pcb->PC + 1;
             }
             //update the instruction pointer of the CPU
-            updateIP(pcb->PC);
+            updateIP(pcb->PC, pcb->PC_offset);
 
             //run the CPU
             errorCode = run(quanta);
 
+            if(pageFaultFlag == 1){
+                pageFaultFlag = 0;
+                handlePageFault(pcb);
+
+            }
             //handle any errors
-            if(exitProgramFlag == 1 || errorCode != 0){
+            else if(exitProgramFlag == 1 || errorCode != 0){
 
                 //print information about the error code for the user
                 if(errorCode == 1){
@@ -210,6 +216,8 @@ int scheduler(){
     }
     return 0;
 }
+
+
 
 void freeCPU(){
     freeMyCPU();

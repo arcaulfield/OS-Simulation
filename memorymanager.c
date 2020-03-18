@@ -5,9 +5,13 @@
 #include "memorymanager.h"
 #include "ram.h"
 #include "pcb.h"
+#include "kernel.h"
 
 //****PRIVATE VARIABLES****
 int filecount = 1;
+
+//the index is the frame number and the PCB* is the pcb currently using this frame number
+PCB* usedframes[10];
 
 //Frame struct
 typedef struct Frame{
@@ -49,6 +53,20 @@ int findVictim(PCB* pcb){
     }
 
     return randnum;
+}
+
+//make victimFrame be 1 if there is a victim
+int updatePageTable(PCB * p, int pageNumber, int frameNumber, int victimFrame){
+    if(victimFrame == -1){
+        for(int i = 0; i < 10; i++){
+            if(usedframes[frameNumber]->pageTable[i] == frameNumber){
+                usedframes[frameNumber]->pageTable[i] = -1;
+            }
+        }
+
+    }
+    p->pageTable[pageNumber] = frameNumber;
+    usedframes[frameNumber] = p;
 }
 
 // get the total count of necessary pages for a file
@@ -181,12 +199,45 @@ int launcher(FILE *p) {
 
 
 
-
-
     fclose(dest);
     filecount ++;
 
     return 1;
+}
+
+
+//handles page faults
+void handlePageFault(PCB* pcb){
+    pcb->PC_page ++;
+    if(pcb->PC_page >= pcb->pages_max){
+        finishExecuting(pcb);
+        return;
+    }
+
+
+
+    int frame = pcb->pageTable[pcb->PC_page];
+    //if the page is already in ram
+    if(frame != -1){
+        pcb->PC = 4*frame;
+    }else{
+        //open a file pointer to the file in the Backing Store
+
+        int victimSelected = 0;
+
+        int ff = findFrame();
+        if(ff == -1){
+            ff = findVictim(pcb);
+            victimSelected = 1;
+
+        }
+
+        loadPage(pcb->PC_page, pcb->f, ff);
+        updatePageTable(pcb, pcb->PC_page, ff, victimSelected);
+
+
+    }
+
 }
 
 
@@ -206,4 +257,7 @@ void initEmptyFrameQueue(){
     }
     tail = oldFrame;
 }
+
+
+
 

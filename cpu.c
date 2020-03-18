@@ -3,16 +3,22 @@
 #include "ram.h"
 #include "shell.h"
 #include "interpreter.h"
+#include "memorymanager.h"
 
 //****PRIVATE VARIABLES****
 
 typedef struct CPU{
     int IP;
+    int offset;
     char IR[1000];
     int quanta;
 }CPU;
 
 CPU* myCPU;
+
+
+//****PUBLIC VARIABLES****
+int pageFaultFlag = 0;
 
 //****PUBLIC METHODS****
 
@@ -21,6 +27,7 @@ CPU* myCPU;
 void initCPU(){
     myCPU = (CPU*) malloc(sizeof(CPU));
     myCPU->quanta = 2;
+    myCPU->offset = 0;
     myCPU->IR[0] = '\0';
 }
 
@@ -30,8 +37,9 @@ void freeMyCPU(){
 }
 
 //updates the instruction pointer's value
-void updateIP(int ip){
+void updateIP(int ip, int offset){
     myCPU->IP = ip;
+    myCPU->offset = offset;
 }
 
 //return 0 if the CPU is available, return 1 otherwise
@@ -51,10 +59,9 @@ int run(int quanta){
     int errorCode = 0;
     //Run quanta number of lines
     while(myCPU->quanta < quanta){
-        //get a line from RAM
-        strcpy(myCPU->IR, getLineFromRam(myCPU->IP));
 
-        myCPU->IP ++;
+        //get a line from RAM
+        strcpy(myCPU->IR, getLineFromRam(myCPU->IP + myCPU->offset));
 
         //parse, interpret and run line
         errorCode = parse(myCPU->IR);
@@ -65,7 +72,21 @@ int run(int quanta){
             return errorCode;
         }
         myCPU->quanta ++;
-        myCPU->IR[0] = '\0';
+
+        myCPU->offset ++;
+
+        if(myCPU->offset == 4){
+            //indicate that the cpu is free
+            myCPU->IR[0] = '\0';
+            myCPU->quanta = 2;
+
+            //set page fault flag
+            pageFaultFlag = 1;
+            return 0;
+        }
     }
+
+
+
     return errorCode;
 }
