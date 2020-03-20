@@ -185,7 +185,7 @@ int exec(char** words){
     }
 
     //call the scheduler
-    scheduler();
+   // scheduler();
 
     inProgramCount--;
     return errorCode;

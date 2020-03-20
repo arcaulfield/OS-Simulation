@@ -1,3 +1,9 @@
-set x 10
+set z 30
+print z
+set x 30
 print x
+set y 30
+print y
+set w 30
+print w
 quit

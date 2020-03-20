@@ -8,7 +8,7 @@
 #include "kernel.h"
 
 //****PRIVATE VARIABLES****
-int filecount = 1;
+
 
 //the index is the frame number and the PCB* is the pcb currently using this frame number
 PCB* usedframes[10];
@@ -19,26 +19,49 @@ typedef struct Frame{
     struct Frame* next;
 }Frame;
 
-Frame* head;
-Frame* tail;
+//linked list of empty frames
+Frame* fhead = NULL;
+Frame* ftail = NULL;
+
+//****PUBLIC VARIABLES****
+
+int filecount = 1;
 
 //****PRIVATE METHODS****
 
 //find the next free frame using FIFO
+//updates the free frame linked list
 int findFrame(){
-    if(head == NULL){
+    if(fhead == NULL){
         return -1;
     }
-    int framenum = head->frameNum;
+    int framenum = fhead->frameNum;
 
     //adjust the emtpy frame queue accordingly
-    Frame * f = head;
-    head = head->next;
+    Frame * f = fhead;
+    fhead = fhead->next;
     free(f);
 
     return framenum;
 }
 
+//add a freed frame to the back of the free fame linked list
+void addFreeFrame(int frameNum){
+    struct Frame* frame = (struct Frame*) malloc(sizeof(struct Frame));
+    frame->frameNum = frameNum;
+    frame->next = NULL;
+    if(ftail == NULL){
+        fhead = frame;
+        ftail = frame;
+    }
+    else{
+        ftail->next = frame;
+        ftail = frame;
+    }
+}
+
+
+//finds next victim frame
 int findVictim(PCB* pcb){
     srand(time(0));
 
@@ -55,21 +78,31 @@ int findVictim(PCB* pcb){
     return randnum;
 }
 
-//make victimFrame be 1 if there is a victim
+// make victimFrame be 1 if there is a victim
+// updates the used frame array, which tracks which frames are used by which pcbs
+// returns 0 if there isn't an error
 int updatePageTable(PCB * p, int pageNumber, int frameNumber, int victimFrame){
-    if(victimFrame == -1){
+    if(victimFrame == 1){
         for(int i = 0; i < 10; i++){
             if(usedframes[frameNumber]->pageTable[i] == frameNumber){
                 usedframes[frameNumber]->pageTable[i] = -1;
+                p->pageTable[pageNumber] = frameNumber;
+                usedframes[frameNumber] = p;
+                return 0;
             }
         }
 
     }
-    p->pageTable[pageNumber] = frameNumber;
-    usedframes[frameNumber] = p;
+    else{
+        p->pageTable[pageNumber] = frameNumber;
+        usedframes[frameNumber] = p;
+        return 0;
+    }
+    //return 1 if there is an error updating page tables
+    return 1;
 }
 
-// get the total count of necessary pages for a file
+// get the total number of necessary pages for a file
 int countTotalPages(FILE *f){
     int linecount = 0;
     int pagecount = 0;
@@ -83,13 +116,15 @@ int countTotalPages(FILE *f){
 
     }
     linecount -- ;
-    printf("linecount %d\n", linecount);
 
     if (linecount == 0){
-        // handle
+        return 0;
     }
     // each page consists of 4 lines of code
     pagecount = (linecount - 1) / 4 + 1;
+
+    //ensures the file pointer points at the beginning of the file
+    fseek(f, 0, SEEK_SET);
 
     return pagecount;
 }
@@ -131,10 +166,9 @@ void loadPage(int pageNumber, FILE * f, int frameNumber){
         }
         k --;
     }
+    //ensures the file pointer points at the beginning of the file
+    fseek(f, 0, SEEK_SET);
 }
-
-
-
 
 
 //****PUBLIC METHODS****
@@ -158,20 +192,20 @@ int launcher(FILE *p) {
     FILE *dest = fopen(destination, "w");
 
     if(dest == NULL){
+        //there was an error loading the file into backing store
         return 0;
     }
 
-    //get a line from the file
+    //buffer to store lines from the file
     char buffer[1000];
-
 
     //load the file into RAM line by line
     while (!feof(p)) {
         memset(buffer, '\0', 999);
         fgets(buffer, 999, p);
 
-        //remove blank lines - don't load them into
-        if(strcmp(buffer, "") ==0 || strcmp(buffer, "\n") ==0 || strcmp(buffer, "\r\n") ==0) {
+        //remove blank lines - don't load them into the Backing Store
+        if(strcmp(buffer, "") ==  0 || strcmp(buffer, "\n") ==0 || strcmp(buffer, "\r\n") == 0) {
             continue;
         }
 
@@ -179,27 +213,14 @@ int launcher(FILE *p) {
 
     }
 
+    //close the destination file pointer
     fclose(dest);
 
     //close the original file pointer
     fclose(p);
 
+    myinit(destination);
 
-    //open the new file in BackingStore
-    dest = fopen(destination, "rt");
-    if(dest == NULL){
-        return 0;
-    }
-
-    int pagecount = countTotalPages(dest);
-
-    printf("pagecount is: %d\n", pagecount);
-    //ensures the file pointer points at the beginning of the file
-    fseek(dest, 0, SEEK_SET);
-
-
-
-    fclose(dest);
     filecount ++;
 
     return 1;
@@ -225,15 +246,35 @@ void handlePageFault(PCB* pcb){
 
         int victimSelected = 0;
 
-        int ff = findFrame();
-        if(ff == -1){
-            ff = findVictim(pcb);
+        frame = findFrame();
+        if(frame == -1){
+            frame = findVictim(pcb);
             victimSelected = 1;
 
         }
 
-        loadPage(pcb->PC_page, pcb->f, ff);
-        updatePageTable(pcb, pcb->PC_page, ff, victimSelected);
+        //get the name of the file in the backing store -> this is determined by the pid
+        char numbuffer[5];
+        sprintf(numbuffer, "%d", pcb->pid);
+
+        char destination[30];
+        memset(destination, '\0', 30);
+        //REMOVE ../ WHEN NOT DEBUGGING
+        strncpy(destination, "../BackingStore/", 29);
+
+        strcat(destination, numbuffer);
+        strcat(destination, ".txt");
+
+        FILE* pcbfile = fopen(destination, "rt");
+
+
+        updatePageTable(pcb, pcb->PC_page, frame, victimSelected);
+        loadPage(pcb->PC_page, pcbfile, frame);
+
+        pcb->PC = frame * 4;
+        pcb->PC_offset = 0;
+
+        fclose(pcbfile);
 
 
     }
@@ -244,10 +285,10 @@ void handlePageFault(PCB* pcb){
 //initialize a queue of all the emtpy frames
 //this queue allows us to quickly determine the next empty frame
 //frames are chosen using FIFO
-void initEmptyFrameQueue(){
+void  initEmptyFrameQueue(){
     struct Frame* oldFrame = (struct Frame*) malloc(sizeof(struct Frame));
     oldFrame->frameNum = 0;
-    head = oldFrame;
+    fhead = oldFrame;
     for(int i = 1; i < 10; i ++){
         struct Frame* newFrame = (struct Frame*) malloc(sizeof(struct Frame));
         newFrame->frameNum = i;
@@ -255,7 +296,7 @@ void initEmptyFrameQueue(){
         oldFrame->next = newFrame;
         oldFrame = newFrame;
     }
-    tail = oldFrame;
+    ftail = oldFrame;
 }
 
 

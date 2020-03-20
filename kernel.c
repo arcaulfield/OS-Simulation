@@ -22,12 +22,14 @@ void clearReadyQueue(){
     while(head != NULL){
         PCB * pcb = head;
         head = head->next;
-        clearProgram(pcb->start, pcb->end);
+        //******************************************************************************************************************************************************
+        //clearProgram(pcb->start, pcb->end);
         clearPCB(pcb);
     }
     tail = NULL;
 }
 
+//PUBLIC
 //adds a PCB to the back of the ready queue
 void addToReady(PCB* newPCB){
     if(head == NULL){
@@ -47,29 +49,32 @@ void removeFromReady(PCB* pcb){
         return;
     }
     //if the pcb is the head, then remove it
-    if(head->start == pcb->start && head->end == pcb->end){
-        if(tail->start == pcb->start && tail->end == pcb->end){
-            tail = NULL;
-            head = NULL;
-        }
-        else{
-            head = head->next;
-            pcb->next = NULL;
-        }
-    }
+    //******************************************************************************************************************************************************
+//    if(head->start == pcb->start && head->end == pcb->end){
+//        if(ftail->start == pcb->start && ftail->end == pcb->end){
+//            ftail = NULL;
+//            head = NULL;
+//        }
+//        else{
+//            head = head->next;
+//            pcb->next = NULL;
+//        }
+//    }
     //we should only be removing from the head in general
     //however this allows for PCBs to be removed from anywhere in the list should this ever be needed
     else{
         PCB* node = head;
-        while(node->next != NULL ){
-            if(node->next->start == pcb->start && node->next->end == pcb->end){
-                node->next = node->next->next;
-                if(node->next == NULL){
-                    tail = node;
-                }
-            }
-            node = node->next;
-        }
+        //******************************************************************************************************************************************************
+
+//        while(node->next != NULL ){
+//            if(node->next->start == pcb->start && node->next->end == pcb->end){
+//                node->next = node->next->next;
+//                if(node->next == NULL){
+//                    ftail = node;
+//                }
+//            }
+//            node = node->next;
+//        }
         node->next = NULL;
     }
 
@@ -81,7 +86,8 @@ void printReadyQueue(){
     printf("PRINTING CONTENTS OF QUEUE\n");
     PCB* node = head;
     while(node != NULL){
-        printf("PCB with start %d, end %d and program counter %d\n", node->start, node->end, node->PC);
+        //******************************************************************************************************************************************************
+        //printf("PCB with start %d, end %d and program counter %d\n", node->start, node->end, node->PC);
         node = node->next;
     }
 }
@@ -94,45 +100,53 @@ void initReadyQueue(){
 //****PUBLIC METHODS****
 
 //initializes a program
-//opens the file, adds the program to ram
 //then creates a new pcb and adds to the end of the ready queue
 int myinit(char *filename){
-    int start = 0;
-    int end = 0;
 
-    //FOR DEBUGGING PURPOSES
-    char newfile[100];
-    memset(newfile, '\0', 100);
-    strcat(newfile, "../");
-    strcat(newfile, filename);
-
-    FILE *file = fopen(newfile, "rt");
-
-    if(file == NULL){
-        int errorCode = 2; // file not found error
-        return errorCode;
+    //open a file pointer to the new file in BackingStore
+    FILE* p = fopen(filename, "rt");
+    if(p == NULL){
+        return 0;
     }
 
-    //add the program to RAM
-    addToRam(file, &start, &end);
-    //check if there was an error loading to RAM and handle accordingly
-    if(checkErrorFlag() == 1){
-        //reset the flag
-        resetFlag();
-        //clear all of ram
-        clearProgram(0, 999);
-        int errorCode = 4; //not enough space in RAM error
-        fclose(file);
-        return errorCode;
-    }
+    int max_pages = countTotalPages(p);
 
     //create a new PCB
-    PCB* newPCB = makePCB(start, end);
+    PCB* newPCB = makePCB(filecount, max_pages);
 
+    int i = 0;
+    //number of pages to load into ram when launch program
+    int k = 2;
+    if(max_pages < 2){
+        k = 1;
+    }
+
+    int pageNum = 0;
+    while(k > pageNum){
+
+        int frameNum = findFrame();
+
+        if(newPCB->PC == -1){
+            newPCB->PC = frameNum * 4;
+        }
+        updatePageTable(newPCB, pageNum, frameNum, 0);
+        printf("\nThe updated page table has page: %d stored in frame: %d\n", pageNum, newPCB->pageTable[pageNum]);
+
+        loadPage(pageNum, p, frameNum);
+        printRam(frameNum *4, frameNum *4 + 3);
+
+        i++;
+        pageNum++;
+    }
+
+    //close the destination file pointer
+    fclose(p);
+
+    printPCB(newPCB);
     //add the PCB to the read list
     addToReady(newPCB);
 
-    fclose(file);
+
     return 0;
 }
 
@@ -142,7 +156,9 @@ int myinit(char *filename){
 void finishExecuting(PCB* pcb){
 
     //clear program from ram
-    clearProgram(pcb->start, pcb->end);
+
+    //******************************************************************************************************************************************************
+    //clearProgram(pcb->start, pcb->end);
 
     //remove the PCB from the Ready list
     removeFromReady(pcb);
@@ -165,8 +181,8 @@ int scheduler(){
         if(cpuAvailable() == 0){
 
             //shorten the length of the quanta if the number of lines left in the program is less than one quanta
-            if(pcb->end - pcb->PC < quanta){
-                quanta = pcb->end - pcb->PC + 1;
+            if(4 - pcb->PC_offset < quanta){
+                quanta = 4 - pcb->PC_offset;
             }
             //update the instruction pointer of the CPU
             updateIP(pcb->PC, pcb->PC_offset);
@@ -200,13 +216,14 @@ int scheduler(){
 
             } else {
                 pcb->PC = pcb->PC + quanta;
-                if(pcb->PC > pcb->end){
-                    finishExecuting(pcb);
-                }
-                else{
-                    removeFromReady(pcb);
-                    addToReady(pcb);
-                }
+                //******************************************************************************************************************************************************
+//                if(pcb->PC > pcb->end){
+//                    finishExecuting(pcb);
+//                }
+//                else{
+//                    removeFromReady(pcb);
+//                    addToReady(pcb);
+//                }
             }
 
             pcb = head;

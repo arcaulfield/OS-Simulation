@@ -4,18 +4,17 @@
 #include <stdio.h>
 //PCB struct
 typedef struct PCB{
+    int pid;
     int PC;
-    int start;
-    int end;
     int pageTable[10];
     int PC_page;
     int PC_offset;
     int pages_max;
-    FILE* f;
     struct PCB* next;
 }PCB;
 
-PCB* makePCB(int PID, int start, int end, int pages_max, FILE* f);
+PCB* makePCB(int pid, int pages_max);
 void clearPCB(PCB*);
+void printPCB(PCB* pcb);
 
 #endif //ASSIGNMENT2_PCB_H
