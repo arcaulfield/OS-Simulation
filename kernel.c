@@ -49,32 +49,29 @@ void removeFromReady(PCB* pcb){
         return;
     }
     //if the pcb is the head, then remove it
-    //******************************************************************************************************************************************************
-//    if(head->start == pcb->start && head->end == pcb->end){
-//        if(ftail->start == pcb->start && ftail->end == pcb->end){
-//            ftail = NULL;
-//            head = NULL;
-//        }
-//        else{
-//            head = head->next;
-//            pcb->next = NULL;
-//        }
-//    }
+    if(head->pid == pcb->pid){
+        if(tail->pid == pcb->pid){
+            tail = NULL;
+            head = NULL;
+        }
+        else{
+            head = head->next;
+            pcb->next = NULL;
+        }
+    }
     //we should only be removing from the head in general
     //however this allows for PCBs to be removed from anywhere in the list should this ever be needed
     else{
         PCB* node = head;
-        //******************************************************************************************************************************************************
-
-//        while(node->next != NULL ){
-//            if(node->next->start == pcb->start && node->next->end == pcb->end){
-//                node->next = node->next->next;
-//                if(node->next == NULL){
-//                    ftail = node;
-//                }
-//            }
-//            node = node->next;
-//        }
+        while(node->next != NULL ){
+            if(node->next->pid == pcb->pid){
+                node->next = node->next->next;
+                if(node->next == NULL){
+                    tail = node;
+                }
+            }
+            node = node->next;
+        }
         node->next = NULL;
     }
 
@@ -86,8 +83,7 @@ void printReadyQueue(){
     printf("PRINTING CONTENTS OF QUEUE\n");
     PCB* node = head;
     while(node != NULL){
-        //******************************************************************************************************************************************************
-        //printf("PCB with start %d, end %d and program counter %d\n", node->start, node->end, node->PC);
+        printPCB(node);
         node = node->next;
     }
 }
@@ -125,11 +121,20 @@ int myinit(char *filename){
     while(k > pageNum){
 
         int frameNum = findFrame();
+        //boolean to indicate whether or not there was a victim
+        int victim = 0;
+
+        //Note that this should never be true, because initially only at most 6 pages will be loaded into RAM.
+        //This allows us to increase the number of programs executing should we ever choose to do so
+        if(frameNum == -1){
+            frameNum = findVictim(newPCB);
+            victim = 1;
+        }
 
         if(newPCB->PC == -1){
             newPCB->PC = frameNum * 4;
         }
-        updatePageTable(newPCB, pageNum, frameNum, 0);
+        updatePageTable(newPCB, pageNum, frameNum, victim);
         printf("\nThe updated page table has page: %d stored in frame: %d\n", pageNum, newPCB->pageTable[pageNum]);
 
         loadPage(pageNum, p, frameNum);
@@ -146,7 +151,8 @@ int myinit(char *filename){
     //add the PCB to the read list
     addToReady(newPCB);
 
-
+    printReadyQueue();
+    printUsedFrames();
     return 0;
 }
 
@@ -193,10 +199,10 @@ int scheduler(){
             if(pageFaultFlag == 1){
                 pageFaultFlag = 0;
                 handlePageFault(pcb);
-
             }
+
             //handle any errors
-            else if(exitProgramFlag == 1 || errorCode != 0){
+            if(exitProgramFlag == 1 || errorCode != 0){
 
                 //print information about the error code for the user
                 if(errorCode == 1){

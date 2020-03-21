@@ -45,7 +45,7 @@ int findFrame(){
     return framenum;
 }
 
-//add a freed frame to the back of the free fame linked list
+//add a freed frame to the back of the free frame linked list
 void addFreeFrame(int frameNum){
     struct Frame* frame = (struct Frame*) malloc(sizeof(struct Frame));
     frame->frameNum = frameNum;
@@ -299,6 +299,14 @@ void  initEmptyFrameQueue(){
     ftail = oldFrame;
 }
 
+void printUsedFrames(){
+    printf("FRAMES ARE ASSIGNED TO THE FOLLOWING PROGRAMS\n");
+    for(int i = 0; i < 10; i++){
+        if(usedframes[i] != NULL){
+            printf("FRAME: %d PID: %d\n", i, usedframes[i]->pid);
+        }
+    }
+}
 
 
 

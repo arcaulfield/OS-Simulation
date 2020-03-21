@@ -14,6 +14,7 @@ int countTotalPages(FILE *f);
 int updatePageTable(PCB * p, int pageNumber, int frameNumber, int victimFrame);
 int findVictim(PCB* pcb);
 int findFrame();
+void printUsedFrames();
 
 
 #endif //ASSIGNMENT2_MEMORYMANAGER_H
