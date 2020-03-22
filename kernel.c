@@ -106,9 +106,10 @@ int myinit(char *filename){
     }
 
     int max_pages = countTotalPages(p);
+    int linecount = countTotalLines(p);
 
     //create a new PCB
-    PCB* newPCB = makePCB(filecount, max_pages);
+    PCB* newPCB = makePCB(filecount, max_pages, linecount);
 
     int i = 0;
     //number of pages to load into ram when launch program
@@ -160,11 +161,12 @@ int myinit(char *filename){
 //This function is called once a program has finished executing.
 //It clears the program from RAM and destroys the PCB
 void finishExecuting(PCB* pcb){
+    //clear a program from the backing store
+    // ************************************************************************************************************
+   // clearBackingStore(pcb);
 
     //clear program from ram
-
-    //******************************************************************************************************************************************************
-    //clearProgram(pcb->start, pcb->end);
+    clearRam(pcb);
 
     //remove the PCB from the Ready list
     removeFromReady(pcb);
@@ -186,10 +188,25 @@ int scheduler(){
         //check if the CPU is available
         if(cpuAvailable() == 0){
 
-            //shorten the length of the quanta if the number of lines left in the program is less than one quanta
-            if(4 - pcb->PC_offset < quanta){
-                quanta = 4 - pcb->PC_offset;
+            //check that the page that is needed wasn't given to another program
+            //if it was, through "interrupt" and handle the page fault
+            if(pcb->pageTable[pcb->PC_page] == -1){
+                handlePageFault(pcb);
+                removeFromReady(pcb);
+                addToReady(pcb);
+                pcb = head;
+                quanta = 2;
+                continue;
             }
+
+            //limit is the maximum amount of lines left in a page
+            int limit = (pcb->linecount - 4*pcb->PC_page) > 4 ? 4 : (pcb->linecount - 4*pcb->PC_page);
+
+            //shorten the length of the quanta if the number of lines left in the program is less than one quanta
+            if(limit - pcb->PC_offset < quanta){
+                quanta = limit - pcb->PC_offset;
+            }
+
             //update the instruction pointer of the CPU
             updateIP(pcb->PC, pcb->PC_offset);
 
@@ -198,6 +215,8 @@ int scheduler(){
 
             if(pageFaultFlag == 1){
                 pageFaultFlag = 0;
+                //this ensure that the correct type of page fault is handled
+                pcb->PC_offset = 4;
                 handlePageFault(pcb);
             }
 
@@ -221,15 +240,16 @@ int scheduler(){
                 finishExecuting(pcb);
 
             } else {
-                pcb->PC = pcb->PC + quanta;
-                //******************************************************************************************************************************************************
-//                if(pcb->PC > pcb->end){
-//                    finishExecuting(pcb);
-//                }
-//                else{
-//                    removeFromReady(pcb);
-//                    addToReady(pcb);
-//                }
+                pcb->PC_offset = pcb->PC_offset + quanta;
+
+                //check if the program has terminiated
+                if(pcb->PC_offset  + 4*pcb->PC_page +  1 >= pcb->linecount){
+                    finishExecuting(pcb);
+                }
+                else{
+                    removeFromReady(pcb);
+                    addToReady(pcb);
+                }
             }
 
             pcb = head;

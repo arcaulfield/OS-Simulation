@@ -37,8 +37,8 @@ void freeMyCPU(){
 }
 
 //updates the instruction pointer's value
-void updateIP(int ip, int offset){
-    myCPU->IP = ip;
+void updateIP(int pc, int offset){
+    myCPU->IP = pc;
     myCPU->offset = offset;
 }
 
@@ -57,8 +57,10 @@ int cpuAvailable(){
 int run(int quanta){
     myCPU->quanta = 0;
     int errorCode = 0;
+
     //Run quanta number of lines
     while(myCPU->quanta < quanta){
+
 
         //get a line from RAM
         strcpy(myCPU->IR, getLineFromRam(myCPU->IP + myCPU->offset));
@@ -66,11 +68,13 @@ int run(int quanta){
         //parse, interpret and run line
         errorCode = parse(myCPU->IR);
 
+        //if there is any type of error, the program loses the CPU and is terminated
         if(errorCode != 0 || exitProgramFlag == 1){
             myCPU->quanta = 2;
             myCPU->IR[0] = '\0';
             return errorCode;
         }
+
         myCPU->quanta ++;
 
         myCPU->offset ++;
@@ -82,11 +86,9 @@ int run(int quanta){
 
             //set page fault flag
             pageFaultFlag = 1;
-            return 0;
+            return errorCode;
         }
     }
-
-
 
     return errorCode;
 }

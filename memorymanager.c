@@ -6,6 +6,7 @@
 #include "ram.h"
 #include "pcb.h"
 #include "kernel.h"
+#include "interpreter.h"
 
 //****PRIVATE VARIABLES****
 
@@ -130,6 +131,26 @@ int countTotalPages(FILE *f){
 }
 
 
+// get the total number of lines for a file
+int countTotalLines(FILE *f){
+    int linecount = 0;
+
+    char buffer[1000];
+    while (!feof(f)) {
+        //get a line from the file
+        memset(buffer, '\0', 999);
+        fgets(buffer, 999, f);
+        linecount++;
+
+    }
+    linecount -- ;
+
+    //ensures the file pointer points at the beginning of the file
+    fseek(f, 0, SEEK_SET);
+
+    return linecount;
+}
+
 //load page pageNumber from the BackingStore into the frameNumber of Ram
 void loadPage(int pageNumber, FILE * f, int frameNumber){
     int i = 4*frameNumber;
@@ -229,28 +250,28 @@ int launcher(FILE *p) {
 
 //handles page faults
 void handlePageFault(PCB* pcb){
-    pcb->PC_page ++;
-    if(pcb->PC_page >= pcb->pages_max){
-        finishExecuting(pcb);
-        return;
+
+    //handle page faults that occur when the page that is needed for a program is taken by another program
+    //we only update the PC_offset and PC_page if the PC_offset currently equals 4
+    if(pcb->PC_offset == 4){
+        pcb->PC_page ++;
+        if(pcb->PC_page >= pcb->pages_max){
+            //set a flag indicating that the program is ready to terminate
+            exitProgramFlag = 1;
+            return;
+        }
     }
 
-
-
     int frame = pcb->pageTable[pcb->PC_page];
+
     //if the page is already in ram
-    if(frame != -1){
-        pcb->PC = 4*frame;
-    }else{
+    if(frame == -1){
         //open a file pointer to the file in the Backing Store
-
         int victimSelected = 0;
-
         frame = findFrame();
         if(frame == -1){
             frame = findVictim(pcb);
             victimSelected = 1;
-
         }
 
         //get the name of the file in the backing store -> this is determined by the pid
@@ -271,14 +292,57 @@ void handlePageFault(PCB* pcb){
         updatePageTable(pcb, pcb->PC_page, frame, victimSelected);
         loadPage(pcb->PC_page, pcbfile, frame);
 
-        pcb->PC = frame * 4;
-        pcb->PC_offset = 0;
 
         fclose(pcbfile);
 
-
+    }
+    pcb->PC = frame * 4;
+    if(pcb->PC_offset == 4) {
+        pcb->PC_offset = 0;
     }
 
+    printf("HANDLED PAGE FAULT\n");
+    printUsedFrames();
+    printPCB(pcb);
+
+}
+
+//clears a frame from RAM and updates usedframes and the free frame linked list accordingly
+void clearFrameFromRam(int frame){
+    clearProgram(frame*4, frame*4 + 3);
+    usedframes[frame] = NULL;
+    addFreeFrame(frame);
+}
+
+//clears all the frames that a program is using from RAM
+void clearRam(PCB* pcb){
+    int frame = -1;
+    for(int i = 0; i < 10; i++){
+        frame = pcb->pageTable[i];
+        if(frame != -1){
+            clearFrameFromRam(frame);
+        }
+    }
+}
+
+
+//clear the program from the backing store
+void clearBackingStore(PCB* pcb){
+    //get the name of the file in the backing store -> this is determined by the pid
+    char numbuffer[5];
+    sprintf(numbuffer, "%d", pcb->pid);
+
+    char rmStr[30];
+    memset(rmStr, '\0', 30);
+    strncpy(rmStr, "sudo rm ", 29);
+
+    //REMOVE ../ WHEN NOT DEBUGGING
+    strncpy(rmStr, "../BackingStore/", 29);
+
+    strcat(rmStr, numbuffer);
+    strcat(rmStr, ".txt");
+
+    system(rmStr);
 }
 
 
@@ -308,5 +372,12 @@ void printUsedFrames(){
     }
 }
 
-
+void clearMemManager(){
+    Frame* node;
+    while(fhead != NULL){
+         node = fhead;
+        fhead = fhead->next;
+        free(node);
+    }
+}
 

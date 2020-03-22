@@ -32,6 +32,7 @@ int quit(){
     printf("Bye!\n");
     if(inFileCount  == 0 && inProgramCount == 0){
         clearMemory();
+        clearMemManager();
         freeCPU();
         exit(0);
     }
@@ -185,7 +186,7 @@ int exec(char** words){
     }
 
     //call the scheduler
-   // scheduler();
+    scheduler();
 
     inProgramCount--;
     return errorCode;

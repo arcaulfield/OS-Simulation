@@ -15,6 +15,10 @@ int updatePageTable(PCB * p, int pageNumber, int frameNumber, int victimFrame);
 int findVictim(PCB* pcb);
 int findFrame();
 void printUsedFrames();
+int countTotalLines(FILE *f);
+void clearRam(PCB* pcb);
+void clearBackingStore(PCB* pcb);
+void clearMemManager();
 
 
 #endif //ASSIGNMENT2_MEMORYMANAGER_H

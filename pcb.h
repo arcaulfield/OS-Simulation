@@ -10,10 +10,11 @@ typedef struct PCB{
     int PC_page;
     int PC_offset;
     int pages_max;
+    int linecount;
     struct PCB* next;
 }PCB;
 
-PCB* makePCB(int pid, int pages_max);
+PCB* makePCB(int pid, int pages_max, int linecount);
 void clearPCB(PCB*);
 void printPCB(PCB* pcb);
 
