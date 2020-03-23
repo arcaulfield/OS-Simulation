@@ -8,6 +8,9 @@
 #include "shell.h"
 #include "memorymanager.h"
 
+//set to 1 if debugging
+int debug = 1;
+
 //****PRIVATE VARIABLES****
 
 //Ready queue
@@ -22,8 +25,9 @@ void clearReadyQueue(){
     while(head != NULL){
         PCB * pcb = head;
         head = head->next;
-        //******************************************************************************************************************************************************
-        //clearProgram(pcb->start, pcb->end);
+        //clear program from ram
+        clearBackingStore(pcb);
+        clearRam(pcb);
         clearPCB(pcb);
     }
     tail = NULL;
@@ -97,6 +101,7 @@ void initReadyQueue(){
 
 //initializes a program
 //then creates a new pcb and adds to the end of the ready queue
+//return 1 if initializing is successful and 0 otherwise
 int myinit(char *filename){
 
     //open a file pointer to the new file in BackingStore
@@ -107,6 +112,11 @@ int myinit(char *filename){
 
     int max_pages = countTotalPages(p);
     int linecount = countTotalLines(p);
+
+    if(max_pages > 10){
+        remove(filename);
+        return 0;
+    }
 
     //create a new PCB
     PCB* newPCB = makePCB(filecount, max_pages, linecount);
@@ -154,7 +164,7 @@ int myinit(char *filename){
 
     printReadyQueue();
     printUsedFrames();
-    return 0;
+    return 1;
 }
 
 
@@ -163,7 +173,7 @@ int myinit(char *filename){
 void finishExecuting(PCB* pcb){
     //clear a program from the backing store
     // ************************************************************************************************************
-   // clearBackingStore(pcb);
+    clearBackingStore(pcb);
 
     //clear program from ram
     clearRam(pcb);
@@ -213,13 +223,6 @@ int scheduler(){
             //run the CPU
             errorCode = run(quanta);
 
-            if(pageFaultFlag == 1){
-                pageFaultFlag = 0;
-                //this ensure that the correct type of page fault is handled
-                pcb->PC_offset = 4;
-                handlePageFault(pcb);
-            }
-
             //handle any errors
             if(exitProgramFlag == 1 || errorCode != 0){
 
@@ -238,19 +241,31 @@ int scheduler(){
 
                 exitProgramFlag = 0;
                 finishExecuting(pcb);
+                pcb = head;
+                quanta = 2;
+                continue;
 
-            } else {
-                pcb->PC_offset = pcb->PC_offset + quanta;
-
-                //check if the program has terminiated
-                if(pcb->PC_offset  + 4*pcb->PC_page +  1 >= pcb->linecount){
-                    finishExecuting(pcb);
-                }
-                else{
-                    removeFromReady(pcb);
-                    addToReady(pcb);
-                }
             }
+
+            if(pageFaultFlag == 1){
+                pageFaultFlag = 0;
+                //this ensure that the correct type of page fault is handled
+                pcb->PC_offset = 4;
+                handlePageFault(pcb);
+            } else {
+                //don't update the pcb if there was a page fault
+                pcb->PC_offset = pcb->PC_offset + quanta;
+            }
+
+            //check if the program has terminiated
+            if(pcb->PC_offset  + 4*pcb->PC_page >= pcb->linecount){
+                finishExecuting(pcb);
+            }
+            else{
+                removeFromReady(pcb);
+                addToReady(pcb);
+            }
+
 
             pcb = head;
             quanta = 2;

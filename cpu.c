@@ -62,6 +62,7 @@ int run(int quanta){
     while(myCPU->quanta < quanta){
 
 
+        memset(myCPU->IR, '\0', 1000);
         //get a line from RAM
         strcpy(myCPU->IR, getLineFromRam(myCPU->IP + myCPU->offset));
 

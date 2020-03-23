@@ -155,11 +155,6 @@ int countTotalLines(FILE *f){
 void loadPage(int pageNumber, FILE * f, int frameNumber){
     int i = 4*frameNumber;
 
-    if(ram[i] != NULL){
-        //RAM ERROR - figure out how to handle
-        return;
-    }
-
     int fileLine = pageNumber * 4;
 
     char buffer[1000];
@@ -174,17 +169,16 @@ void loadPage(int pageNumber, FILE * f, int frameNumber){
     int k = 4;
 
     while (!feof(f) && k > 0){
+        if(i > 39 || ram[i] != NULL){
+            //set the load error flag to 1, indicating that there isn't enough space in RAM
+            return;
+        }
         //get a line from the file
         memset(buffer, '\0', 999);
         fgets(buffer, 999, f);
 
         ram[i] = strdup(buffer);
         i++;
-        //if there isn't enough space in RAM, deal with the error
-        if(i > 39 || ram[i] != NULL){
-            //set the load error flag to 1, indicating that there isn't enough space in RAM
-            return;
-        }
         k --;
     }
     //ensures the file pointer points at the beginning of the file
@@ -204,7 +198,10 @@ int launcher(FILE *p) {
     char destination[30];
     memset(destination, '\0', 30);
     //REMOVE ../ WHEN NOT DEBUGGING
-    strncpy(destination, "../BackingStore/", 29);
+    if(debug == 1){
+        strncpy(destination, "../", 29);
+    }
+    strcat(destination, "BackingStore/");
 
     strcat(destination, numbuffer);
     strcat(destination, ".txt");
@@ -240,11 +237,11 @@ int launcher(FILE *p) {
     //close the original file pointer
     fclose(p);
 
-    myinit(destination);
+    int errorCode = myinit(destination);
 
     filecount ++;
 
-    return 1;
+    return errorCode;
 }
 
 
@@ -281,7 +278,10 @@ void handlePageFault(PCB* pcb){
         char destination[30];
         memset(destination, '\0', 30);
         //REMOVE ../ WHEN NOT DEBUGGING
-        strncpy(destination, "../BackingStore/", 29);
+        if(debug == 1){
+            strncpy(destination, "../", 29);
+        }
+        strcat(destination, "BackingStore/");
 
         strcat(destination, numbuffer);
         strcat(destination, ".txt");
@@ -334,15 +334,16 @@ void clearBackingStore(PCB* pcb){
 
     char rmStr[30];
     memset(rmStr, '\0', 30);
-    strncpy(rmStr, "sudo rm ", 29);
 
-    //REMOVE ../ WHEN NOT DEBUGGING
-    strncpy(rmStr, "../BackingStore/", 29);
+    if(debug == 1){
+        strncpy(rmStr, "../", 29);
+    }
+    strcat(rmStr, "BackingStore/");
 
     strcat(rmStr, numbuffer);
     strcat(rmStr, ".txt");
 
-    system(rmStr);
+    remove(rmStr);
 }
 
 

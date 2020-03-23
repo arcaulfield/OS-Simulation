@@ -2,6 +2,9 @@
 #define ASSIGNMENT2_KERNEL_H
 #include "pcb.h"
 
+extern int debug;
+
+
 int myinit(char *filename);
 int scheduler();
 void clearReadyQueue();

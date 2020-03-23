@@ -116,11 +116,8 @@ int shellUI() {
             printf("Script not found.\n");
         }
         //error code for not being enough space to load programs into ram
-        else if(errorCode == 4){
-            printf("Error: there was not enough space to load the program(s) into RAM.\n");
-        }
         else if(errorCode == 5){
-            printf("Error: there was an error launching the program.\n");
+            printf("Error: programs can be at most 40 lines long.\n");
         }
 
     }

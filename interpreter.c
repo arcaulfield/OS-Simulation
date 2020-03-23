@@ -70,15 +70,23 @@ static int run(char **words){
     char *filename = words[1];
 
     //FOR DEBUGGING PURPOSES
-    char newfile[100];
-    memset(newfile, '\0', 100);
-    strcat(newfile, "../");
-    strcat(newfile, filename);
+
+    FILE *p;
+    if(debug == 1){
+        char newfile[100];
+        memset(newfile, '\0', 100);
+        strcat(newfile, "../");
+        strcat(newfile, filename);
+        p = fopen(newfile, "rt");
+    }
+    else {
+        p = fopen(filename, "rt");
+    }
+
 
     int errorCode = 0;
     char line[1000];
 
-    FILE *p = fopen(newfile, "rt");
     if(p == NULL){
         inFileCount--;
         errorCode = 2;
@@ -105,21 +113,30 @@ static int run(char **words){
 //executes programs simultaneously
 int exec(char** words){
     inProgramCount ++;
+    filecount = 1;
 
     int i = 0;
     int errorCode = 0;
     char* filename = words[1];
 
-    //FOR DEBUGGING PURPOSES
-    char newfile[100];
-    memset(newfile, '\0', 100);
-    strcat(newfile, "../");
-    strcat(newfile, filename);
+    FILE *file;
+    if(debug == 1){
+        char newfile[100];
+        memset(newfile, '\0', 100);
+        strcat(newfile, "../");
+        strcat(newfile, filename);
 
-    FILE *file = fopen(newfile, "rt");
+        file = fopen(newfile, "rt");
+    }
+    else{
+        file = fopen(filename, "rt");
+    }
+
 
     if(file == NULL){
         errorCode = 2; // file not found error
+        clearReadyQueue();
+        inProgramCount--;
         return errorCode;
     }
 
@@ -161,16 +178,23 @@ int exec(char** words){
 
         filename[j] = '\0';
 
-        //FOR DEBUGGING PURPOSES
-        char newfile2[100];
-        memset(newfile2, '\0', 100);
-        strcat(newfile2, "../");
-        strcat(newfile2, filename);
+        FILE* file2;
+        if(debug == 1){
+            char newfile2[100];
+            memset(newfile2, '\0', 100);
+            strcat(newfile2, "../");
+            strcat(newfile2, filename);
 
-        FILE *file2 = fopen(newfile2, "rt");
+            file2 = fopen(newfile2, "rt");
+        }
+        else{
+            file2 = fopen(filename, "rt");
+        }
 
         if(file2 == NULL){
             errorCode = 2; // file not found error
+            clearReadyQueue();
+            inProgramCount--;
             return errorCode;
         }
 
