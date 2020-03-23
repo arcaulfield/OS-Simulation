@@ -9,7 +9,7 @@
 #include "memorymanager.h"
 
 //set to 1 if debugging
-int debug = 0;
+int debug = 1;
 
 //****PRIVATE VARIABLES****
 

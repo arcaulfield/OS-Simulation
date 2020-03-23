@@ -96,6 +96,7 @@ static int run(char **words){
     fgets(line, 999, p);
     while(!feof(p)){
         errorCode = parse(line);
+        memset(line, '\0', 999);
         if(errorCode != 0 || closeFlag == 1){
             closeFlag = 0;
             inFileCount--;
@@ -105,6 +106,17 @@ static int run(char **words){
         fgets(line, 999, p);
     }
     fclose(p);
+    if(strcmp(line, "") != 0){
+        strcat(line, "\n");
+        errorCode = parse(line);
+        memset(line, '\0', 999);
+        if(errorCode != 0 || closeFlag == 1){
+            closeFlag = 0;
+            inFileCount--;
+            fclose(p);
+            return errorCode;
+        }
+    }
     inFileCount--;
     return errorCode;
 
