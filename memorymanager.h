@@ -7,7 +7,7 @@ extern int filecount;
 
 
 int launcher(FILE *p);
-void initEmptyFrameQueue();
+void initMemoryManager();
 void handlePageFault(PCB* pcb);
 void loadPage(int pageNumber, FILE * f, int frameNumber);
 int countTotalPages(FILE *f);

@@ -51,7 +51,7 @@ void addFreeFrame(int frameNum){
     struct Frame* frame = (struct Frame*) malloc(sizeof(struct Frame));
     frame->frameNum = frameNum;
     frame->next = NULL;
-    if(ftail == NULL){
+    if(fhead == NULL){
         fhead = frame;
         ftail = frame;
     }
@@ -64,10 +64,9 @@ void addFreeFrame(int frameNum){
 
 //finds next victim frame
 int findVictim(PCB* pcb){
-    srand(time(0));
-
     //get a random number that is between 0 and 9
     int randnum = rand() % 10;
+    printf("RANDOM NUMBER %d\n", randnum);
     for(int i = 0; i < 10; i++){
         if(pcb->pageTable[i] == randnum){
             //start iterating from the beginning if you find a frame number that isn't used by the active pcb
@@ -83,12 +82,12 @@ int findVictim(PCB* pcb){
 // updates the used frame array, which tracks which frames are used by which pcbs
 // returns 0 if there isn't an error
 int updatePageTable(PCB * p, int pageNumber, int frameNumber, int victimFrame){
-    if(victimFrame == 1){
+    if(victimFrame != -1){
         for(int i = 0; i < 10; i++){
-            if(usedframes[frameNumber]->pageTable[i] == frameNumber){
-                usedframes[frameNumber]->pageTable[i] = -1;
-                p->pageTable[pageNumber] = frameNumber;
-                usedframes[frameNumber] = p;
+            if(usedframes[victimFrame] != NULL && usedframes[victimFrame]->pageTable[i] == victimFrame){
+                usedframes[victimFrame]->pageTable[i] = -1;
+                p->pageTable[pageNumber] = victimFrame;
+                usedframes[victimFrame] = p;
                 return 0;
             }
         }
@@ -169,13 +168,13 @@ void loadPage(int pageNumber, FILE * f, int frameNumber){
     int k = 4;
 
     while (!feof(f) && k > 0){
-        if(i > 39 || ram[i] != NULL){
-            //set the load error flag to 1, indicating that there isn't enough space in RAM
-            return;
-        }
         //get a line from the file
         memset(buffer, '\0', 999);
         fgets(buffer, 999, f);
+
+        if(ram[i] != NULL){
+            free(ram[i]);
+        }
 
         ram[i] = strdup(buffer);
         i++;
@@ -264,11 +263,11 @@ void handlePageFault(PCB* pcb){
     //if the page is already in ram
     if(frame == -1){
         //open a file pointer to the file in the Backing Store
-        int victimSelected = 0;
+        int victimSelected = -1;
         frame = findFrame();
         if(frame == -1){
             frame = findVictim(pcb);
-            victimSelected = 1;
+            victimSelected = frame;
         }
 
         //get the name of the file in the backing store -> this is determined by the pid
@@ -297,7 +296,7 @@ void handlePageFault(PCB* pcb){
 
     }
     pcb->PC = frame * 4;
-    if(pcb->PC_offset == 4) {
+    if(pcb->PC_offset == 4){
         pcb->PC_offset = 0;
     }
 
@@ -350,7 +349,7 @@ void clearBackingStore(PCB* pcb){
 //initialize a queue of all the emtpy frames
 //this queue allows us to quickly determine the next empty frame
 //frames are chosen using FIFO
-void  initEmptyFrameQueue(){
+void  initMemoryManager(){
     struct Frame* oldFrame = (struct Frame*) malloc(sizeof(struct Frame));
     oldFrame->frameNum = 0;
     fhead = oldFrame;
@@ -362,6 +361,9 @@ void  initEmptyFrameQueue(){
         oldFrame = newFrame;
     }
     ftail = oldFrame;
+
+    //seed for the random number generator
+    srand(time(0));
 }
 
 void printUsedFrames(){

@@ -9,7 +9,7 @@
 #include "memorymanager.h"
 
 //set to 1 if debugging
-int debug = 1;
+int debug = 0;
 
 //****PRIVATE VARIABLES****
 
@@ -133,13 +133,13 @@ int myinit(char *filename){
 
         int frameNum = findFrame();
         //boolean to indicate whether or not there was a victim
-        int victim = 0;
+        int victim = -1;
 
         //Note that this should never be true, because initially only at most 6 pages will be loaded into RAM.
         //This allows us to increase the number of programs executing should we ever choose to do so
         if(frameNum == -1){
             frameNum = findVictim(newPCB);
-            victim = 1;
+            victim = frameNum;
         }
 
         if(newPCB->PC == -1){
@@ -301,7 +301,7 @@ void boot(){
     }
 
     //initialize the queue containing all empty frames
-    initEmptyFrameQueue();
+    initMemoryManager();
 
     // REMOVE THE ../ FOR NON DEBUG MODE
     system("rm -rf ../BackingStore/");
