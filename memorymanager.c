@@ -144,6 +144,10 @@ int countTotalLines(FILE *f){
     }
     linecount -- ;
 
+    //ensures that lines that don't end with a newline symbol are counted in the total line count
+    if(strcmp(buffer, "") != 0){
+        linecount++;
+    }
     //ensures the file pointer points at the beginning of the file
     fseek(f, 0, SEEK_SET);
 

@@ -54,11 +54,19 @@ int parse(char* userInput){
 
     }
 
-    if(parsedString[wordNum][letterNum - 1] == '\n'){
-        parsedString[wordNum][letterNum - 1] = '\0';
-    } else {
+
+    //check if the string was too long
+    if(i >= word_length - 1 && parsedString[wordNum][letterNum - 1] != '\n'){
         printf("Warning: Your input string is too long. Input can be at most %d characters. ", word_length);
         printf("Your input will be read %d characters at a time.\n", word_length);
+    }
+    else{
+        parsedString[wordNum][letterNum] = '\0';
+    }
+
+
+    if(parsedString[wordNum][letterNum - 1] == '\n'){
+        parsedString[wordNum][letterNum - 1] = '\0';
     }
 
     if(parsedString[wordNum][letterNum - 2] == '\r'){
