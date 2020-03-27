@@ -3,10 +3,9 @@
 #include <string.h>
 
 
-//****PUBLIC VARIABLES****
-char *ram[40];
 
 //****PRIVATE VARIABLES****
+char *ram[40];
 
 //this is a flag that indicates that there isn't enough space to load the program into RAM
 //this is used because addToRam must return void
@@ -15,42 +14,20 @@ int loadErrorFlag = 0;
 
 //****PUBLIC METHODS****
 
-//adds a new program to RAM
-void addToRam(FILE *p, int* start, int* end){
-
-    //find the first NULL space in RAM
-    int k = 0;
-    for(int i =0; i < 40; i++){
-        if (ram[i] == NULL){
-            *start = i;
-            k = i;
-            break;
-        }
+//initializes RAM to NULL
+void initRam(){
+    for(int i = 0; i < 40; i++){
+        ram[i] = NULL;
     }
+}
 
-    //get a line from the file
-    char buffer[1000];
+//adds a line to RAM
+void addLineToRam(char* buffer, int i){
 
-    //load the file into RAM line by line
-    while(!feof(p)){
-        memset(buffer, '\0', 999);
-        fgets(buffer, 999, p);
-        //remove blank lines
-        if(strcmp(buffer, "") ==0) {
-            continue;
-        }
-        ram[k] = strdup(buffer);
-        k++;
-        //if there isn't enough space in RAM, deal with the error
-        if(k > 39 || ram[k] != NULL){
-            *end = k - 1;
-            //set the load error flag to 1, indicating that there isn't enough space in RAM
-            loadErrorFlag = 1;
-            return;
-        }
+    if(ram[i] != NULL){
+        free(ram[i]);
     }
-
-    *end = k - 1;
+    ram[i] = strdup(buffer);
 
 }
 

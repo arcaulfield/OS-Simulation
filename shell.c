@@ -76,8 +76,8 @@ int parse(char* userInput){
     errorCode = interpreter(parsedString);
 
     //free the memory used for the parsed strings
-    for (int i = 0; i < words_num; i++) {
-        free(parsedString[i]);
+    for(int j = 0; j < words_num; j++) {
+        free(parsedString[j]);
     }
     free(parsedString);
 
@@ -106,7 +106,6 @@ int shellUI() {
         }
 
         printf("%s", prompt);
-
 
         memset(userInput, '\0', (word_length));
         fgets(userInput, word_length, stdin);

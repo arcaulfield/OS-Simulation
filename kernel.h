@@ -3,6 +3,7 @@
 #include "pcb.h"
 
 extern int debug;
+extern int verbose;
 
 
 int myinit(char *filename);

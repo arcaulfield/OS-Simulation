@@ -11,6 +11,9 @@
 //set to 1 if debugging
 int debug = 1;
 
+//if 1 print contents
+int verbose = 0;
+
 //****PRIVATE VARIABLES****
 
 //Ready queue
@@ -146,10 +149,17 @@ int myinit(char *filename){
             newPCB->PC = frameNum * 4;
         }
         updatePageTable(newPCB, pageNum, frameNum, victim);
-        printf("\nThe updated page table has page: %d stored in frame: %d\n", pageNum, newPCB->pageTable[pageNum]);
+
+        if(verbose == 1){
+            printf("\nThe updated page table has page: %d stored in frame: %d\n", pageNum, newPCB->pageTable[pageNum]);
+        }
+
 
         loadPage(pageNum, p, frameNum);
-        printRam(frameNum *4, frameNum *4 + 3);
+
+        if(verbose == 1){
+            printRam(frameNum *4, frameNum *4 + 3);
+        }
 
         i++;
         pageNum++;
@@ -158,12 +168,17 @@ int myinit(char *filename){
     //close the destination file pointer
     fclose(p);
 
-    printPCB(newPCB);
+    if(verbose == 1){
+        printPCB(newPCB);
+    }
+
     //add the PCB to the read list
     addToReady(newPCB);
 
-    printReadyQueue();
-    printUsedFrames();
+    if(verbose == 1){
+        printReadyQueue();
+        printUsedFrames();
+    }
     return 1;
 }
 
@@ -283,6 +298,9 @@ void freeCPU(){
 
 
 int kernel(){
+    //initialize the queue containing all empty frames
+    initMemoryManager();
+
     //instantiate the CPU
     initCPU();
     //initialize the ready queue
@@ -296,12 +314,7 @@ int kernel(){
 
 void boot(){
     //initialize all cells of ram to null, indicating that there are no pages of code in RAM
-    for(int i = 0; i < 40; i++){
-        ram[i] = NULL;
-    }
-
-    //initialize the queue containing all empty frames
-    initMemoryManager();
+    initRam();
 
     // REMOVE THE ../ FOR NON DEBUG MODE
     system("rm -rf ../BackingStore/");

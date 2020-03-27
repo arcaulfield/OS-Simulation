@@ -66,7 +66,7 @@ void addFreeFrame(int frameNum){
 int findVictim(PCB* pcb){
     //get a random number that is between 0 and 9
     int randnum = rand() % 10;
-    printf("RANDOM NUMBER %d\n", randnum);
+
     for(int i = 0; i < 10; i++){
         if(pcb->pageTable[i] == randnum){
             //start iterating from the beginning if you find a frame number that isn't used by the active pcb
@@ -176,11 +176,8 @@ void loadPage(int pageNumber, FILE * f, int frameNumber){
         memset(buffer, '\0', 999);
         fgets(buffer, 999, f);
 
-        if(ram[i] != NULL){
-            free(ram[i]);
-        }
+        addLineToRam(buffer, i);
 
-        ram[i] = strdup(buffer);
         i++;
         k --;
     }
@@ -304,9 +301,12 @@ void handlePageFault(PCB* pcb){
         pcb->PC_offset = 0;
     }
 
-    printf("HANDLED PAGE FAULT\n");
-    printUsedFrames();
-    printPCB(pcb);
+    if(verbose == 1){
+        printf("HANDLED PAGE FAULT\n");
+        printUsedFrames();
+        printPCB(pcb);
+    }
+
 
 }
 

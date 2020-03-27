@@ -4,11 +4,9 @@
 #include <stdio.h>
 
 
-extern char *ram[40];
-
-
 void resetFlag();
-void addToRam(FILE *p, int* start, int* end);
+void initRam();
+void addLineToRam(char* buffer, int i);
 void clearProgram(int start, int end);
 char* getLineFromRam(int line);
 int checkErrorFlag();
