@@ -26,9 +26,38 @@ Frame* ftail = NULL;
 
 //****PUBLIC VARIABLES****
 
+//tracks how many programs have been executed
+//ensures all programs get a unique program id
 int filecount = 1;
 
 //****PRIVATE METHODS****
+
+//add a freed frame to the back of the free frame linked list
+void addFreeFrame(int frameNum){
+    struct Frame* frame = (struct Frame*) malloc(sizeof(struct Frame));
+    frame->frameNum = frameNum;
+    frame->next = NULL;
+    if(fhead == NULL){
+        fhead = frame;
+        ftail = frame;
+    }
+    else{
+        ftail->next = frame;
+        ftail = frame;
+    }
+}
+
+//clears a frame from RAM and updates usedframes array and the free frame linked list accordingly
+void clearFrameFromRam(int frame){
+    //clear the frame in ram
+    clearProgram(frame*4, frame*4 + 3);
+    //set the frame's index in the usedframes array to NULL, indicating that no programs are using the frame
+    usedframes[frame] = NULL;
+    //add the frame to the back of the free frame linked list
+    addFreeFrame(frame);
+}
+
+//****PUBLIC METHODS****
 
 //find the next free frame using FIFO
 //updates the free frame linked list
@@ -44,21 +73,6 @@ int findFrame(){
     free(f);
 
     return framenum;
-}
-
-//add a freed frame to the back of the free frame linked list
-void addFreeFrame(int frameNum){
-    struct Frame* frame = (struct Frame*) malloc(sizeof(struct Frame));
-    frame->frameNum = frameNum;
-    frame->next = NULL;
-    if(fhead == NULL){
-        fhead = frame;
-        ftail = frame;
-    }
-    else{
-        ftail->next = frame;
-        ftail = frame;
-    }
 }
 
 
@@ -185,13 +199,13 @@ void loadPage(int pageNumber, FILE * f, int frameNumber){
     fseek(f, 0, SEEK_SET);
 }
 
-
-//****PUBLIC METHODS****
-
 //returns 1 if the program is successfully launched, and 0 otherwise
 int launcher(FILE *p) {
 
-    //create the name of the file in BackingStore
+    //copy the entire file into the backing store
+
+    //create a file in BackingStore
+    //the name of the file is based on the pid of the program (for example, if pid = 2, the filename is 2.txt)
     char numbuffer[5];
     sprintf(numbuffer, "%d", filecount);
 
@@ -209,15 +223,10 @@ int launcher(FILE *p) {
     //create the new file in BackingStore
     FILE *dest = fopen(destination, "w");
 
-    if(dest == NULL){
-        //there was an error loading the file into backing store
-        return 0;
-    }
-
     //buffer to store lines from the file
     char buffer[1000];
 
-    //load the file into RAM line by line
+    //load the program into the file (in the Backing Store) line by line
     while (!feof(p)) {
         memset(buffer, '\0', 999);
         fgets(buffer, 999, p);
@@ -227,16 +236,19 @@ int launcher(FILE *p) {
             continue;
         }
 
+        //load a line of the program into the file in the Backing Store
         fprintf(dest, "%s", buffer);
 
     }
 
-    //close the destination file pointer
+    //close the file pointer of the file in the Backing Store
     fclose(dest);
 
-    //close the original file pointer
+    //close the file pointer pointing to the original file
     fclose(p);
 
+    //call myinit()
+    //this opens the file pointer in the backing store, then loads at most 2 pages into RAM
     int errorCode = myinit(destination);
 
     filecount ++;
@@ -310,16 +322,10 @@ void handlePageFault(PCB* pcb){
 
 }
 
-//clears a frame from RAM and updates usedframes and the free frame linked list accordingly
-void clearFrameFromRam(int frame){
-    clearProgram(frame*4, frame*4 + 3);
-    usedframes[frame] = NULL;
-    addFreeFrame(frame);
-}
-
 //clears all the frames that a program is using from RAM
 void clearRam(PCB* pcb){
     int frame = -1;
+    //iterate through the program's page table and clear all frames from RAM
     for(int i = 0; i < 10; i++){
         frame = pcb->pageTable[i];
         if(frame != -1){
@@ -328,10 +334,9 @@ void clearRam(PCB* pcb){
     }
 }
 
-
 //clear the program from the backing store
 void clearBackingStore(PCB* pcb){
-    //get the name of the file in the backing store -> this is determined by the pid
+    //get the name of the file of the program in the backing store. This is determined by the pid of the program
     char numbuffer[5];
     sprintf(numbuffer, "%d", pcb->pid);
 
@@ -346,14 +351,17 @@ void clearBackingStore(PCB* pcb){
     strcat(rmStr, numbuffer);
     strcat(rmStr, ".txt");
 
+    //remove the file containing the program from the backing store
     remove(rmStr);
 }
 
-
-//initialize a queue of all the emtpy frames
-//this queue allows us to quickly determine the next empty frame
-//frames are chosen using FIFO
-void  initMemoryManager(){
+//initialize the memory manager
+//initialize the seed for the random number generator and the queue for empty frames
+//initialize the array of usedFrames to NULL
+void initMemoryManager(){
+    //initialize a queue of all the emtpy frames
+    //this queue allows us to quickly determine the next empty frame
+    //frames are chosen using FIFO
     struct Frame* oldFrame = (struct Frame*) malloc(sizeof(struct Frame));
     oldFrame->frameNum = 0;
     fhead = oldFrame;
@@ -366,10 +374,17 @@ void  initMemoryManager(){
     }
     ftail = oldFrame;
 
+    //initialize the usedframes array to NULL, which indicates no frames are currently being used
+    for(int i = 0; i < 10; i++){
+        usedframes[i] = NULL;
+    }
+
     //seed for the random number generator
     srand(time(0));
 }
 
+//prints all the frames that are currently being used by programs
+//this method is only used for debugging purposes
 void printUsedFrames(){
     printf("FRAMES ARE ASSIGNED TO THE FOLLOWING PROGRAMS\n");
     for(int i = 0; i < 10; i++){
@@ -379,10 +394,12 @@ void printUsedFrames(){
     }
 }
 
+//clears the memory manager
+//frees all frames in the free frame linked list
 void clearMemManager(){
     Frame* node;
     while(fhead != NULL){
-         node = fhead;
+        node = fhead;
         fhead = fhead->next;
         free(node);
     }

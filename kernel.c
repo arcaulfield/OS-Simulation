@@ -12,7 +12,7 @@
 int debug = 1;
 
 //if 1 print contents
-int verbose = 0;
+int verbose = 1;
 
 //****PRIVATE VARIABLES****
 
@@ -130,6 +130,7 @@ int myinit(char *filename){
     if(max_pages < 2){
         k = 1;
     }
+
 
     int pageNum = 0;
     while(k > pageNum){
@@ -298,7 +299,7 @@ void freeCPU(){
 
 
 int kernel(){
-    //initialize the queue containing all empty frames
+    //initialize the queue containing all empty frames and the seed for the random number generator
     initMemoryManager();
 
     //instantiate the CPU
@@ -316,6 +317,7 @@ void boot(){
     //initialize all cells of ram to null, indicating that there are no pages of code in RAM
     initRam();
 
+    //prepare the backing store by clearing it
     // REMOVE THE ../ FOR NON DEBUG MODE
     system("rm -rf ../BackingStore/");
     //ERROR HANDLING!

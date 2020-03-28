@@ -210,7 +210,7 @@ int exec(char** words){
             return errorCode;
         }
 
-        //NOTE: launcher clauses the file pointer
+        //NOTE: launcher closes the file pointer
         err = launcher(file2);
 
         if(err != 1){
