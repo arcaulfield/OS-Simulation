@@ -57,8 +57,6 @@ void clearFrameFromRam(int frame){
     addFreeFrame(frame);
 }
 
-//****PUBLIC METHODS****
-
 //find the next free frame using FIFO
 //updates the free frame linked list
 int findFrame(){
@@ -116,6 +114,40 @@ int updatePageTable(PCB * p, int pageNumber, int frameNumber, int victimFrame){
     return 1;
 }
 
+//load page pageNumber from the BackingStore into the frameNumber of Ram
+void loadPage(int pageNumber, FILE * f, int frameNumber){
+    int i = 4*frameNumber;
+
+    int fileLine = pageNumber * 4;
+
+    char buffer[1000];
+    while (!feof(f) && fileLine > 0) {
+        //get a line from the file
+        memset(buffer, '\0', 999);
+        fgets(buffer, 999, f);
+        fileLine --;
+
+    }
+
+    int k = 4;
+
+    while (!feof(f) && k > 0){
+        //get a line from the file
+        memset(buffer, '\0', 999);
+        fgets(buffer, 999, f);
+
+        addLineToRam(buffer, i);
+
+        i++;
+        k --;
+    }
+    //ensures the file pointer points at the beginning of the file
+    fseek(f, 0, SEEK_SET);
+}
+
+
+//****PUBLIC METHODS****
+
 // get the total number of necessary pages for a file
 int countTotalPages(FILE *f){
     int linecount = 0;
@@ -168,35 +200,44 @@ int countTotalLines(FILE *f){
     return linecount;
 }
 
-//load page pageNumber from the BackingStore into the frameNumber of Ram
-void loadPage(int pageNumber, FILE * f, int frameNumber){
-    int i = 4*frameNumber;
 
-    int fileLine = pageNumber * 4;
+//launches k pages into RAM
+//finds the frame to launch the page
+//loads the page into the frame
+//updates the page table of the PCB
+//updates the PC of the PCB to point to the first page
+void launchKPages(int k, PCB* pcb, FILE* p){
+    int pageNum = 0;
+    while(k > pageNum){
 
-    char buffer[1000];
-    while (!feof(f) && fileLine > 0) {
-        //get a line from the file
-        memset(buffer, '\0', 999);
-        fgets(buffer, 999, f);
-        fileLine --;
+        int frameNum = findFrame();
+        //boolean to indicate whether or not there was a victim
+        int victim = -1;
 
+        //Note that this should never be true, because initially only at most 6 pages will be loaded into RAM.
+        //This allows us to increase the number of programs executing should we ever choose to do so
+        if(frameNum == -1){
+            frameNum = findVictim(pcb);
+            victim = frameNum;
+        }
+
+        if(pcb->PC == -1){
+            pcb->PC = frameNum * 4;
+        }
+        updatePageTable(pcb, pageNum, frameNum, victim);
+
+        if(verbose == 1){
+            printf("\nThe updated page table has page: %d stored in frame: %d\n", pageNum, pcb->pageTable[pageNum]);
+        }
+
+
+        loadPage(pageNum, p, frameNum);
+
+        if(verbose == 1){
+            printRam(frameNum *4, frameNum *4 + 3);
+        }
+        pageNum++;
     }
-
-    int k = 4;
-
-    while (!feof(f) && k > 0){
-        //get a line from the file
-        memset(buffer, '\0', 999);
-        fgets(buffer, 999, f);
-
-        addLineToRam(buffer, i);
-
-        i++;
-        k --;
-    }
-    //ensures the file pointer points at the beginning of the file
-    fseek(f, 0, SEEK_SET);
 }
 
 //returns 1 if the program is successfully launched, and 0 otherwise

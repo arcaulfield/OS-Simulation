@@ -12,7 +12,7 @@
 int debug = 1;
 
 //if 1 print contents
-int verbose = 1;
+int verbose = 0;
 
 //****PRIVATE VARIABLES****
 
@@ -124,47 +124,17 @@ int myinit(char *filename){
     //create a new PCB
     PCB* newPCB = makePCB(filecount, max_pages, linecount);
 
-    int i = 0;
     //number of pages to load into ram when launch program
     int k = 2;
     if(max_pages < 2){
         k = 1;
     }
 
+    //launches k pages into RAM
+    //updates the PC of the pcb to the first line of the first page in RAM
+    //updates the page table of the pcb accordingly
+    launchKPages(k, newPCB, p);
 
-    int pageNum = 0;
-    while(k > pageNum){
-
-        int frameNum = findFrame();
-        //boolean to indicate whether or not there was a victim
-        int victim = -1;
-
-        //Note that this should never be true, because initially only at most 6 pages will be loaded into RAM.
-        //This allows us to increase the number of programs executing should we ever choose to do so
-        if(frameNum == -1){
-            frameNum = findVictim(newPCB);
-            victim = frameNum;
-        }
-
-        if(newPCB->PC == -1){
-            newPCB->PC = frameNum * 4;
-        }
-        updatePageTable(newPCB, pageNum, frameNum, victim);
-
-        if(verbose == 1){
-            printf("\nThe updated page table has page: %d stored in frame: %d\n", pageNum, newPCB->pageTable[pageNum]);
-        }
-
-
-        loadPage(pageNum, p, frameNum);
-
-        if(verbose == 1){
-            printRam(frameNum *4, frameNum *4 + 3);
-        }
-
-        i++;
-        pageNum++;
-    }
 
     //close the destination file pointer
     fclose(p);

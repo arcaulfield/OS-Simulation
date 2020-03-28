@@ -5,15 +5,11 @@
 #define ASSIGNMENT2_MEMORYMANAGER_H
 extern int filecount;
 
-
+void launchKPages(int k, PCB *pcb, FILE *p);
 int launcher(FILE *p);
 void initMemoryManager();
 void handlePageFault(PCB* pcb);
-void loadPage(int pageNumber, FILE * f, int frameNumber);
 int countTotalPages(FILE *f);
-int updatePageTable(PCB * p, int pageNumber, int frameNumber, int victimFrame);
-int findVictim(PCB* pcb);
-int findFrame();
 void printUsedFrames();
 int countTotalLines(FILE *f);
 void clearRam(PCB* pcb);
