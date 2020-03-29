@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include "ram.h"
 #include "pcb.h"
@@ -36,7 +35,6 @@ void clearReadyQueue(){
     tail = NULL;
 }
 
-//PUBLIC
 //adds a PCB to the back of the ready queue
 void addToReady(PCB* newPCB){
     if(head == NULL){
@@ -95,10 +93,38 @@ void printReadyQueue(){
     }
 }
 
+//initializes the ready queue
 void initReadyQueue(){
     head = NULL;
     tail = NULL;
 }
+
+int kernel(){
+    //initialize the queue containing all empty frames and the seed for the random number generator
+    initMemoryManager();
+
+    //instantiate the CPU
+    initCPU();
+    //initialize the ready queue
+    initReadyQueue();
+
+    printf("Kernel 1.0 loaded!\n");
+    int error = shellUI();
+    return error;
+}
+
+
+void boot(){
+    //initialize all cells of ram to null, indicating that there are no pages of code in RAM
+    initRam();
+
+    //prepare the backing store by clearing it
+    // REMOVE THE ../ FOR NON DEBUG MODE
+    system("rm -rf BackingStore/");
+    //ERROR HANDLING!
+    system("mkdir BackingStore");
+}
+
 
 //****PUBLIC METHODS****
 
@@ -116,9 +142,18 @@ int myinit(char *filename){
     int max_pages = countTotalPages(p);
     int linecount = countTotalLines(p);
 
+    //if the number of necessary pages is greater than 10, we don't have enough RAM to run the program
+    //return 0, indicating that there is an error
     if(max_pages > 10){
         remove(filename);
         return 0;
+    }
+
+    //if the program is empty, then we don't load it to ram, or create a PCB for it
+    //we return 1 indicating that there is no error
+    if(max_pages == 0){
+        remove(filename);
+        return 1;
     }
 
     //create a new PCB
@@ -158,7 +193,6 @@ int myinit(char *filename){
 //It clears the program from RAM and destroys the PCB
 void finishExecuting(PCB* pcb){
     //clear a program from the backing store
-    // ************************************************************************************************************
     clearBackingStore(pcb);
 
     //clear program from ram
@@ -185,7 +219,7 @@ int scheduler(){
         if(cpuAvailable() == 0){
 
             //check that the page that is needed wasn't given to another program
-            //if it was, through "interrupt" and handle the page fault
+            //if it was, handle the page fault and put the program at the back of the ready queue
             if(pcb->pageTable[pcb->PC_page] == -1){
                 handlePageFault(pcb);
                 removeFromReady(pcb);
@@ -233,9 +267,10 @@ int scheduler(){
 
             }
 
+            //handle page faults
             if(pageFaultFlag == 1){
                 pageFaultFlag = 0;
-                //this ensure that the correct type of page fault is handled
+                //this ensure that the correct type of page fault is handled (end of frame page fault)
                 pcb->PC_offset = 4;
                 handlePageFault(pcb);
             } else {
@@ -243,11 +278,13 @@ int scheduler(){
                 pcb->PC_offset = pcb->PC_offset + quanta;
             }
 
-            //check if the program has terminiated
-            if(pcb->PC_offset  + 4*pcb->PC_page >= pcb->linecount){
+            //check if all lines of the program have run
+            if(pcb->PC_offset  + 4*pcb->PC_page >= pcb->linecount || exitProgramFlag == 1){
+                exitProgramFlag = 0;
                 finishExecuting(pcb);
             }
             else{
+                //move the program to the back of the ready queue
                 removeFromReady(pcb);
                 addToReady(pcb);
             }
@@ -262,37 +299,11 @@ int scheduler(){
 }
 
 
-
+//free the cpu
 void freeCPU(){
     freeMyCPU();
 }
 
-
-int kernel(){
-    //initialize the queue containing all empty frames and the seed for the random number generator
-    initMemoryManager();
-
-    //instantiate the CPU
-    initCPU();
-    //initialize the ready queue
-    initReadyQueue();
-
-    printf("Kernel 1.0 loaded!\n");
-    int error = shellUI();
-    return error;
-}
-
-
-void boot(){
-    //initialize all cells of ram to null, indicating that there are no pages of code in RAM
-    initRam();
-
-    //prepare the backing store by clearing it
-    // REMOVE THE ../ FOR NON DEBUG MODE
-    system("rm -rf ../BackingStore/");
-    //ERROR HANDLING!
-    system("mkdir ../BackingStore");
-}
 
 
 int main(){

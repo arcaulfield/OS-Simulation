@@ -122,9 +122,14 @@ int shellUI() {
         else if(errorCode == 2){
             printf("Script not found.\n");
         }
+            //error code for full memory
+        else if(errorCode == 4){
+            printf("Shell memory is full. No new variables can be added.\n");
+        }
+
         //error code for not being enough space to load programs into ram
         else if(errorCode == 5){
-            printf("Error: programs can be at most 40 lines long.\n");
+            printf("Error: the script is too long. Programs can be at most 40 lines long.\n");
         }
 
     }

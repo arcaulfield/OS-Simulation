@@ -5,12 +5,9 @@
 extern int debug;
 extern int verbose;
 
-
 int myinit(char *filename);
 int scheduler();
 void clearReadyQueue();
 void freeCPU();
-void finishExecuting(PCB *pcb);
-void addToReady(PCB* newPCB);
 
 #endif //ASSIGNMENT2_KERNEL_H

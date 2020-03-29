@@ -16,7 +16,8 @@ NotAValidCommand
 exec script1.txt   script2.txt script1.txt
 exec    script1.txt script2.txt script3.txt
 exec UnKnownFile
-exec script3.txt script2.txt
+exec script3.txt script2.txt script2.txt script2.txt
+exec script1.txt script2.txt
 set b this is a cat
 print str2
 print b

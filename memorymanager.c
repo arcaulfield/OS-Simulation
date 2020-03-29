@@ -10,7 +10,6 @@
 
 //****PRIVATE VARIABLES****
 
-
 //the index is the frame number and the PCB* is the pcb currently using this frame number
 PCB* usedframes[10];
 
@@ -32,7 +31,7 @@ int filecount = 1;
 
 //****PRIVATE METHODS****
 
-//add a freed frame to the back of the free frame linked list
+//add a free frame to the back of the free frame linked list
 void addFreeFrame(int frameNum){
     struct Frame* frame = (struct Frame*) malloc(sizeof(struct Frame));
     frame->frameNum = frameNum;
@@ -59,10 +58,12 @@ void clearFrameFromRam(int frame){
 
 //find the next free frame using FIFO
 //updates the free frame linked list
+//returns -1 if all frames are currently being used
 int findFrame(){
     if(fhead == NULL){
         return -1;
     }
+    //get the next free frame on the linked list
     int framenum = fhead->frameNum;
 
     //adjust the emtpy frame queue accordingly
@@ -75,14 +76,17 @@ int findFrame(){
 
 
 //finds next victim frame
+//returns the frame number of the victim
 int findVictim(PCB* pcb){
     //get a random number that is between 0 and 9
     int randnum = rand() % 10;
 
+    //check if the active pcb is using the frame randnum
     for(int i = 0; i < 10; i++){
         if(pcb->pageTable[i] == randnum){
-            //start iterating from the beginning if you find a frame number that isn't used by the active pcb
+            //start iterating from the beginning if you find that the active pcb is using the frame randnum
             i = -1;
+            //increment randnum
             randnum = (randnum + 1) % 10;
         }
     }
@@ -90,14 +94,16 @@ int findVictim(PCB* pcb){
     return randnum;
 }
 
-// make victimFrame be 1 if there is a victim
 // updates the used frame array, which tracks which frames are used by which pcbs
+// victimFrame is -1 if there isn't a victim
 // returns 0 if there isn't an error
 int updatePageTable(PCB * p, int pageNumber, int frameNumber, int victimFrame){
     if(victimFrame != -1){
         for(int i = 0; i < 10; i++){
             if(usedframes[victimFrame] != NULL && usedframes[victimFrame]->pageTable[i] == victimFrame){
+                //update the victim's page table
                 usedframes[victimFrame]->pageTable[i] = -1;
+                //update the active pcb's page table
                 p->pageTable[pageNumber] = victimFrame;
                 usedframes[victimFrame] = p;
                 return 0;
@@ -114,12 +120,15 @@ int updatePageTable(PCB * p, int pageNumber, int frameNumber, int victimFrame){
     return 1;
 }
 
-//load page pageNumber from the BackingStore into the frameNumber of Ram
+//load page pageNumber from the BackingStore into the frameNumber frame of Ram
 void loadPage(int pageNumber, FILE * f, int frameNumber){
+    //get the index in RAM to start loading the page
     int i = 4*frameNumber;
 
+    //get the line of the file in the backing store
     int fileLine = pageNumber * 4;
 
+    //advance the file pointer to the correct line in the backing store
     char buffer[1000];
     while (!feof(f) && fileLine > 0) {
         //get a line from the file
@@ -131,6 +140,7 @@ void loadPage(int pageNumber, FILE * f, int frameNumber){
 
     int k = 4;
 
+    //load 4 lines into RAM
     while (!feof(f) && k > 0){
         //get a line from the file
         memset(buffer, '\0', 999);
@@ -141,42 +151,14 @@ void loadPage(int pageNumber, FILE * f, int frameNumber){
         i++;
         k --;
     }
-    //ensures the file pointer points at the beginning of the file
+    //ensures the file pointer points to the beginning of the file
     fseek(f, 0, SEEK_SET);
 }
 
 
 //****PUBLIC METHODS****
 
-// get the total number of necessary pages for a file
-int countTotalPages(FILE *f){
-    int linecount = 0;
-    int pagecount = 0;
-
-    char buffer[1000];
-    while (!feof(f)) {
-        //get a line from the file
-        memset(buffer, '\0', 999);
-        fgets(buffer, 999, f);
-        linecount++;
-
-    }
-    linecount -- ;
-
-    if (linecount == 0){
-        return 0;
-    }
-    // each page consists of 4 lines of code
-    pagecount = (linecount - 1) / 4 + 1;
-
-    //ensures the file pointer points at the beginning of the file
-    fseek(f, 0, SEEK_SET);
-
-    return pagecount;
-}
-
-
-// get the total number of lines for a file
+// get the total number of lines of code in a file
 int countTotalLines(FILE *f){
     int linecount = 0;
 
@@ -191,18 +173,38 @@ int countTotalLines(FILE *f){
     linecount -- ;
 
     //ensures that lines that don't end with a newline symbol are counted in the total line count
-    if(strcmp(buffer, "") != 0){
+    if(strcmp(buffer, "") != 0 && strcmp(buffer, "\n") != 0 && strcmp(buffer, "\r\n") != 0){
         linecount++;
     }
+
     //ensures the file pointer points at the beginning of the file
     fseek(f, 0, SEEK_SET);
 
     return linecount;
 }
 
+// get the total number of pages needed for a program
+int countTotalPages(FILE *f){
+
+    //get the total number of lines in a file
+    int linecount =  countTotalLines(f);
+
+    int pagecount = 0;
+
+    if (linecount == 0){
+        return pagecount;
+    }
+
+    // calculate the total number of pages needed
+    // each page consists of 4 lines of code
+    pagecount = (linecount - 1) / 4 + 1;
+
+    return pagecount;
+}
+
 
 //launches k pages into RAM
-//finds the frame to launch the page
+//finds a frame in ram to store the page
 //loads the page into the frame
 //updates the page table of the PCB
 //updates the PC of the PCB to point to the first page
@@ -214,28 +216,32 @@ void launchKPages(int k, PCB* pcb, FILE* p){
         //boolean to indicate whether or not there was a victim
         int victim = -1;
 
-        //Note that this should never be true, because initially only at most 6 pages will be loaded into RAM.
-        //This allows us to increase the number of programs executing should we ever choose to do so
+        //Note: this should never be true, because initially only at most 6 pages will be loaded into RAM.
+        //However, this allows us to increase the number of programs executing should we ever choose to do so
         if(frameNum == -1){
             frameNum = findVictim(pcb);
             victim = frameNum;
         }
 
+        //update the PC to point to the location of the program's first frame in RAM
         if(pcb->PC == -1){
             pcb->PC = frameNum * 4;
         }
+
+        //update the page table accordingly
         updatePageTable(pcb, pageNum, frameNum, victim);
 
         if(verbose == 1){
             printf("\nThe updated page table has page: %d stored in frame: %d\n", pageNum, pcb->pageTable[pageNum]);
         }
 
-
+        //load the page into RAM
         loadPage(pageNum, p, frameNum);
 
         if(verbose == 1){
             printRam(frameNum *4, frameNum *4 + 3);
         }
+
         pageNum++;
     }
 }
@@ -288,7 +294,6 @@ int launcher(FILE *p) {
     //close the file pointer pointing to the original file
     fclose(p);
 
-    //call myinit()
     //this opens the file pointer in the backing store, then loads at most 2 pages into RAM
     int errorCode = myinit(destination);
 
@@ -301,8 +306,7 @@ int launcher(FILE *p) {
 //handles page faults
 void handlePageFault(PCB* pcb){
 
-    //handle page faults that occur when the page that is needed for a program is taken by another program
-    //we only update the PC_offset and PC_page if the PC_offset currently equals 4
+    //we only update the PC_offset and PC_page if the PC_offset currently equals 4 (the program has finished executing a frame)
     if(pcb->PC_offset == 4){
         pcb->PC_page ++;
         if(pcb->PC_page >= pcb->pages_max){
@@ -314,17 +318,18 @@ void handlePageFault(PCB* pcb){
 
     int frame = pcb->pageTable[pcb->PC_page];
 
-    //if the page is already in ram
+    //if the page isn't in ram, load the page into RAM
     if(frame == -1){
-        //open a file pointer to the file in the Backing Store
+
         int victimSelected = -1;
         frame = findFrame();
+
         if(frame == -1){
             frame = findVictim(pcb);
             victimSelected = frame;
         }
 
-        //get the name of the file in the backing store -> this is determined by the pid
+        //get the name of the file in the backing store. This is determined by the pid
         char numbuffer[5];
         sprintf(numbuffer, "%d", pcb->pid);
 
@@ -339,6 +344,7 @@ void handlePageFault(PCB* pcb){
         strcat(destination, numbuffer);
         strcat(destination, ".txt");
 
+        //open the file in the backing store
         FILE* pcbfile = fopen(destination, "rt");
 
 
@@ -350,6 +356,7 @@ void handlePageFault(PCB* pcb){
 
     }
     pcb->PC = frame * 4;
+
     if(pcb->PC_offset == 4){
         pcb->PC_offset = 0;
     }

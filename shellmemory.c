@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include "shell.h"
 
+//****PUBLIC VARIABLES****
+int shellFullFlag = 0;
+
 //****PRIVATE VARIABLES****
 
 struct MEM {
@@ -53,6 +56,7 @@ void setVal(char* var, char* val){
             }
         }
     }
+    shellFullFlag = 1;
 }
 
 //Clears memory. This is called when the program terminates.

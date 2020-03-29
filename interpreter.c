@@ -4,7 +4,6 @@
 #include "shellmemory.h"
 #include "shell.h"
 #include "kernel.h"
-#include "ram.h"
 #include "memorymanager.h"
 
 int exitProgramFlag = 0;
@@ -52,6 +51,13 @@ int set(char** words){
     char *var = words[1];
     char *val = words[2];;
     setVal(var, val);
+
+    //print error if the shell memory is full
+    if(shellFullFlag == 1){
+        shellFullFlag = 0;
+        return 4;
+    }
+
     return 0;
 }
 

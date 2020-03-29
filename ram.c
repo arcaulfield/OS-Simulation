@@ -2,15 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
-
-
 //****PRIVATE VARIABLES****
 char *ram[40];
-
-//this is a flag that indicates that there isn't enough space to load the program into RAM
-//this is used because addToRam must return void
-//if loadErrorFlag == 1, then there wasn't enough space to load the program into RAM
-int loadErrorFlag = 0;
 
 //****PUBLIC METHODS****
 
@@ -21,9 +14,8 @@ void initRam(){
     }
 }
 
-//adds a line to RAM
+//adds a line to index i of RAM
 void addLineToRam(char* buffer, int i){
-
     if(ram[i] != NULL){
         free(ram[i]);
     }
@@ -42,15 +34,6 @@ void clearProgram(int start, int end){
     }
 }
 
-//returns the value of the load error flag
-int checkErrorFlag(){
-    return loadErrorFlag;
-}
-
-//resets the load error flag value to 0 (indicating that there is no error)
-void resetFlag(){
-    loadErrorFlag = 0;
-}
 
 //returns a line from RAM
 char * getLineFromRam(int line){

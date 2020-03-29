@@ -28,6 +28,7 @@ void initCPU(){
     myCPU = (CPU*) malloc(sizeof(CPU));
     myCPU->quanta = 2;
     myCPU->offset = 0;
+    myCPU->IP = 0;
     myCPU->IR[0] = '\0';
 }
 
@@ -80,6 +81,8 @@ int run(int quanta){
 
         myCPU->offset ++;
 
+        //a page fault occurs if we run out of lines of code in the frame
+        //"interrupt" generated
         if(myCPU->offset == 4){
             //indicate that the cpu is free
             myCPU->IR[0] = '\0';
@@ -91,5 +94,8 @@ int run(int quanta){
         }
     }
 
+    //indicate that the cpu is free
+    myCPU->IR[0] = '\0';
+    myCPU->quanta = 2;
     return errorCode;
 }
