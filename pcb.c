@@ -25,11 +25,3 @@ void clearPCB(PCB* pcb){
     free(pcb);
 }
 
-//prints the contents of a pcb for debugging purposes
-void printPCB(PCB* pcb){
-    printf("Created PCB with PID: %d PC: %d pages_max: %d PC_page: %d PC_offset: %d\n", pcb->pid, pcb->PC, pcb->pages_max, pcb->PC_page, pcb->PC_offset);
-    printf("The page table for this PCB is:\n");
-    for(int i = 0; i < 10; i++){
-        printf("Page %d in frame %d\n", i, pcb->pageTable[i]);
-    }
-}

@@ -16,6 +16,5 @@ typedef struct PCB{
 
 PCB* makePCB(int pid, int pages_max, int linecount);
 void clearPCB(PCB*);
-void printPCB(PCB* pcb);
 
 #endif //ASSIGNMENT2_PCB_H

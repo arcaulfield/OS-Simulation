@@ -10,7 +10,6 @@ int launcher(FILE *p);
 void initMemoryManager();
 void handlePageFault(PCB* pcb);
 int countTotalPages(FILE *f);
-void printUsedFrames();
 int countTotalLines(FILE *f);
 void clearRam(PCB* pcb);
 void clearBackingStore(PCB* pcb);

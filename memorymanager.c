@@ -231,16 +231,8 @@ void launchKPages(int k, PCB* pcb, FILE* p){
         //update the page table accordingly
         updatePageTable(pcb, pageNum, frameNum, victim);
 
-        if(verbose == 1){
-            printf("\nThe updated page table has page: %d stored in frame: %d\n", pageNum, pcb->pageTable[pageNum]);
-        }
-
         //load the page into RAM
         loadPage(pageNum, p, frameNum);
-
-        if(verbose == 1){
-            printRam(frameNum *4, frameNum *4 + 3);
-        }
 
         pageNum++;
     }
@@ -258,10 +250,6 @@ int launcher(FILE *p) {
 
     char destination[30];
     memset(destination, '\0', 30);
-    //REMOVE ../ WHEN NOT DEBUGGING
-    if(debug == 1){
-        strncpy(destination, "../", 29);
-    }
     strcat(destination, "BackingStore/");
 
     strcat(destination, numbuffer);
@@ -335,10 +323,6 @@ void handlePageFault(PCB* pcb){
 
         char destination[30];
         memset(destination, '\0', 30);
-        //REMOVE ../ WHEN NOT DEBUGGING
-        if(debug == 1){
-            strncpy(destination, "../", 29);
-        }
         strcat(destination, "BackingStore/");
 
         strcat(destination, numbuffer);
@@ -359,12 +343,6 @@ void handlePageFault(PCB* pcb){
 
     if(pcb->PC_offset == 4){
         pcb->PC_offset = 0;
-    }
-
-    if(verbose == 1){
-        printf("HANDLED PAGE FAULT\n");
-        printUsedFrames();
-        printPCB(pcb);
     }
 
 
@@ -391,9 +369,6 @@ void clearBackingStore(PCB* pcb){
     char rmStr[30];
     memset(rmStr, '\0', 30);
 
-    if(debug == 1){
-        strncpy(rmStr, "../", 29);
-    }
     strcat(rmStr, "BackingStore/");
 
     strcat(rmStr, numbuffer);
@@ -429,17 +404,6 @@ void initMemoryManager(){
 
     //seed for the random number generator
     srand(time(0));
-}
-
-//prints all the frames that are currently being used by programs
-//this method is only used for debugging purposes
-void printUsedFrames(){
-    printf("FRAMES ARE ASSIGNED TO THE FOLLOWING PROGRAMS\n");
-    for(int i = 0; i < 10; i++){
-        if(usedframes[i] != NULL){
-            printf("FRAME: %d PID: %d\n", i, usedframes[i]->pid);
-        }
-    }
 }
 
 //clears the memory manager

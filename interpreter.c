@@ -21,7 +21,7 @@ int help(){
     printf("quit - exits/terminates the shell\nset VAR STRING - assigns a value to shell memory\n");
     printf("print VAR - displays the STRING assigned to VAR\n");
     printf("run SCRIPT.TXT - executes the file SCRIPT.TXT\n");
-    printf("exec p1 p2  p3 - executes concurrent programs\n");
+    printf("exec p1 p2 p3 - executes concurrent programs\n");
     return 0;
 }
 
@@ -75,19 +75,8 @@ static int run(char **words){
     inFileCount ++;
     char *filename = words[1];
 
-    //FOR DEBUGGING PURPOSES
 
-    FILE *p;
-    if(debug == 1){
-        char newfile[100];
-        memset(newfile, '\0', 100);
-        strcat(newfile, "../");
-        strcat(newfile, filename);
-        p = fopen(newfile, "rt");
-    }
-    else {
-        p = fopen(filename, "rt");
-    }
+    FILE *p = fopen(filename, "rt");
 
 
     int errorCode = 0;
@@ -137,18 +126,7 @@ int exec(char** words){
     int errorCode = 0;
     char* filename = words[1];
 
-    FILE *file;
-    if(debug == 1){
-        char newfile[100];
-        memset(newfile, '\0', 100);
-        strcat(newfile, "../");
-        strcat(newfile, filename);
-
-        file = fopen(newfile, "rt");
-    }
-    else{
-        file = fopen(filename, "rt");
-    }
+    FILE *file = fopen(filename, "rt");
 
 
     if(file == NULL){
@@ -158,7 +136,7 @@ int exec(char** words){
         return errorCode;
     }
 
-    //NOTE: launcher clauses the file pointer
+    //NOTE: launcher closes the file pointer
     int err = launcher(file);
 
     if(err != 1){
@@ -196,18 +174,7 @@ int exec(char** words){
 
         filename[j] = '\0';
 
-        FILE* file2;
-        if(debug == 1){
-            char newfile2[100];
-            memset(newfile2, '\0', 100);
-            strcat(newfile2, "../");
-            strcat(newfile2, filename);
-
-            file2 = fopen(newfile2, "rt");
-        }
-        else{
-            file2 = fopen(filename, "rt");
-        }
+        FILE* file2 = fopen(filename, "rt");
 
         if(file2 == NULL){
             errorCode = 2; // file not found error

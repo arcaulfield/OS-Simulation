@@ -7,11 +7,6 @@
 #include "shell.h"
 #include "memorymanager.h"
 
-//set to 1 if debugging
-int debug = 1;
-
-//if 1 print contents
-int verbose = 0;
 
 //****PRIVATE VARIABLES****
 
@@ -82,22 +77,13 @@ void removeFromReady(PCB* pcb){
 
 }
 
-//prints the contents of the ready queue
-//this is useful for debugging
-void printReadyQueue(){
-    printf("PRINTING CONTENTS OF QUEUE\n");
-    PCB* node = head;
-    while(node != NULL){
-        printPCB(node);
-        node = node->next;
-    }
-}
-
 //initializes the ready queue
 void initReadyQueue(){
     head = NULL;
     tail = NULL;
 }
+
+//****PUBLIC METHODS****
 
 int kernel(){
     //initialize the queue containing all empty frames and the seed for the random number generator
@@ -119,14 +105,9 @@ void boot(){
     initRam();
 
     //prepare the backing store by clearing it
-    // REMOVE THE ../ FOR NON DEBUG MODE
     system("rm -rf BackingStore/");
-    //ERROR HANDLING!
     system("mkdir BackingStore");
 }
-
-
-//****PUBLIC METHODS****
 
 //initializes a program
 //then creates a new pcb and adds to the end of the ready queue
@@ -174,17 +155,9 @@ int myinit(char *filename){
     //close the destination file pointer
     fclose(p);
 
-    if(verbose == 1){
-        printPCB(newPCB);
-    }
-
     //add the PCB to the read list
     addToReady(newPCB);
 
-    if(verbose == 1){
-        printReadyQueue();
-        printUsedFrames();
-    }
     return 1;
 }
 
@@ -254,9 +227,14 @@ int scheduler(){
                 else if(errorCode == 2){
                     printf("Script not found.\n");
                 }
-                    //error code for not being enough space to load programs into ram
+                    //error code for full memory
                 else if(errorCode == 4){
-                    printf("Error: there was not enough space to load the program(s) into RAM.\n");
+                    printf("Shell memory is full. No new variables can be added.\n");
+                }
+
+                    //error code for not being enough space to load programs into ram
+                else if(errorCode == 5){
+                    printf("Error: the script is too long. Programs can be at most 40 lines long.\n");
                 }
 
                 exitProgramFlag = 0;
@@ -306,9 +284,4 @@ void freeCPU(){
 
 
 
-int main(){
-    int error = 0;
-    boot();
-    error = kernel();
-    return error;
-}
+

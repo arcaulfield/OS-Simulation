@@ -40,13 +40,4 @@ char * getLineFromRam(int line){
     return strdup(ram[line]);
 }
 
-//Prints the contents of RAM
-//This is only used for debugging purposes
-void printRam(int start, int end){
-    printf("PROGRAM:\n");
-    printf("start pointer: %d; end pointer: %d\n", start, end);
-    for(int i = start; i <= end; i++){
-        printf("%s", ram[i]);
-    }
-}
 
