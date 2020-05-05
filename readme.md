@@ -15,7 +15,7 @@ The simulation includes a simple shell, which allows for user interaction. The p
 - ````exec SCRIPT1.TXT SCRIPT2.TXT SCRIPT3.TXT````: executes up to 3 scripts simuletaneously 
 - ````quit````: terminates the shell
 
-The simulation assumes that all scripts consist of the above commands, with at most one command per line. The simulation handles unknown commands, by printing an error to the user. The shell also has a simple memory, which stores the variable values. 
+The simulation assumes that all scripts are .txt files and consist of the above commands, with at most one command per line. The simulation handles unexpected input, by printing an error to the user. The shell also has a simple memory, which stores the variable values. 
 
 ## Process Execution
 
@@ -40,3 +40,5 @@ In order to run the OS, after cloning the repo,
 1. Run ````./compileMyKernel.sh ````
 2. Run ````./mykernel ````
 3. Enjoy! 
+
+Note that this simulation was developed and runs on a unix-based system.
