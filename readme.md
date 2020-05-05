@@ -3,7 +3,7 @@
 This Unix-based OS simulation consists of a shell, a simple boot sequence, uses virtual memory and process scheduling. 
 
 <p align="center">
-<img src="https://github.com/arcaulfield/OS-Simulation/blob/master/kernel_running.png" width="400"/>
+<img src="https://github.com/arcaulfield/OS-Simulation/blob/master/kernel_running.png" width="500"/>
 </p>
 
 ## Shell Implementation
