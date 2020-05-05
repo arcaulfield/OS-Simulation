@@ -1,9 +1,0 @@
-set a 10123 123021398
-print a
-set a asdfasdf
-set x asdf
-run script1.txt
-run script2.txt
-set b
-print b
-quit
